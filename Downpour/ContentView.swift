@@ -138,6 +138,7 @@ struct ContentView: View {
                     self.progressText = "Downloading thumbnail..."
                 }
                 await downloadThumbnail(url: url)
+                cleanupIntermediateFiles()
                 await MainActor.run {
                     self.outputText = "Download completed successfully."
                     self.isDownloading = false
@@ -161,6 +162,19 @@ struct ContentView: View {
                 self.outputText = "Error: \(error.localizedDescription)"
                 self.isDownloading = false
             }
+        }
+    }
+
+    private func cleanupIntermediateFiles() {
+        let dataDir = URL(fileURLWithPath: "/Users/aa/dev/Downpour/data")
+        let fileManager = FileManager.default
+
+        guard let files = try? fileManager.contentsOfDirectory(at: dataDir, includingPropertiesForKeys: nil) else {
+            return
+        }
+
+        for file in files where file.pathExtension == "m4a" {
+            try? fileManager.removeItem(at: file)
         }
     }
 
