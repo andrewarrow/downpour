@@ -245,11 +245,18 @@ struct StreamingVideoView: View {
         process.standardOutput = pipe
         process.standardError = errorPipe
 
-        try process.run()
-        process.waitUntilExit()
-
-        let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
-        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        let (outputData, errorData) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, Data), Error>) in
+            process.terminationHandler = { _ in
+                let output = pipe.fileHandleForReading.readDataToEndOfFile()
+                let error = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                continuation.resume(returning: (output, error))
+            }
+            do {
+                try process.run()
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
 
         if let errorStr = String(data: errorData, encoding: .utf8), !errorStr.isEmpty {
             print("[DEBUG] yt-dlp stderr: \(errorStr)")

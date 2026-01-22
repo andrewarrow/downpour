@@ -168,13 +168,21 @@ struct YtDlpView: View {
         }
 
         do {
-            try process.run()
-            process.waitUntilExit()
+            let terminationStatus = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Int32, Error>) in
+                process.terminationHandler = { proc in
+                    continuation.resume(returning: proc.terminationStatus)
+                }
+                do {
+                    try process.run()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
 
             pipe.fileHandleForReading.readabilityHandler = nil
             errorPipe.fileHandleForReading.readabilityHandler = nil
 
-            if process.terminationStatus == 0 {
+            if terminationStatus == 0 {
                 await MainActor.run {
                     self.progressText = "Downloading thumbnail..."
                 }
@@ -189,7 +197,7 @@ struct YtDlpView: View {
                 }
             } else {
                 await MainActor.run {
-                    self.outputText = "Download failed (exit code: \(process.terminationStatus))"
+                    self.outputText = "Download failed (exit code: \(terminationStatus))"
                     self.isDownloading = false
                     self.urlText = ""
                     self.progress = 0.0

@@ -151,8 +151,16 @@ class SetupManager: ObservableObject {
         }
 
         do {
-            try process.run()
-            process.waitUntilExit()
+            let terminationStatus = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Int32, Error>) in
+                process.terminationHandler = { proc in
+                    continuation.resume(returning: proc.terminationStatus)
+                }
+                do {
+                    try process.run()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
             pipe.fileHandleForReading.readabilityHandler = nil
 
             if !streamOutput {
@@ -162,7 +170,7 @@ class SetupManager: ObservableObject {
                 }
             }
 
-            return process.terminationStatus == 0
+            return terminationStatus == 0
         } catch {
             appendOutput("Error: \(error.localizedDescription)")
             return false

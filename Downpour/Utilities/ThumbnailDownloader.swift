@@ -23,8 +23,16 @@ enum ThumbnailDownloader {
         process.environment = env
 
         do {
-            try process.run()
-            process.waitUntilExit()
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                process.terminationHandler = { _ in
+                    continuation.resume()
+                }
+                do {
+                    try process.run()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
         } catch {
             // Thumbnail download is best-effort, don't fail the whole operation
         }
