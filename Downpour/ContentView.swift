@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @State private var selectedTab = 0
@@ -19,13 +20,18 @@ struct ContentView: View {
                     TabButton(title: "yt-dlp", isSelected: selectedTab == 0) {
                         selectedTab = 0
                     }
-                    TabButton(title: "api", isSelected: selectedTab == 1) {
+                    TabButton(title: "search", isSelected: selectedTab == 1) {
                         selectedTab = 1
                     }
                     TabButton(title: "subs", isSelected: selectedTab == 2) {
                         selectedTab = 2
                     }
                     Spacer()
+                    Button("Open Data Folder") {
+                        NSWorkspace.shared.open(Paths.dataDirectory)
+                    }
+                    .buttonStyle(.borderless)
+                    .padding(.trailing, 12)
                 }
                 .background(Color(nsColor: .windowBackgroundColor))
 
