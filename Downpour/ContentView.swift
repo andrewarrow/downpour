@@ -170,6 +170,7 @@ struct ContentView: View {
         process.arguments = [
             "--write-thumbnail",
             "--skip-download",
+            "--convert-thumbnails", "jpg",
             "-o", "./data/%(id)s.%(ext)s",
             url
         ]
