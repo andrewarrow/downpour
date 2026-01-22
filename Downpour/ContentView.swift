@@ -26,6 +26,9 @@ struct ContentView: View {
                     TabButton(title: "subs", isSelected: selectedTab == 2) {
                         selectedTab = 2
                     }
+                    TabButton(title: "channels", isSelected: selectedTab == 3) {
+                        selectedTab = 3
+                    }
                     Spacer()
                     Button("Open Data Folder") {
                         NSWorkspace.shared.open(Paths.dataDirectory)
@@ -42,8 +45,10 @@ struct ContentView: View {
                     YtDlpView()
                 } else if selectedTab == 1 {
                     APISearchView()
-                } else {
+                } else if selectedTab == 2 {
                     SubsView()
+                } else {
+                    ChannelsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
