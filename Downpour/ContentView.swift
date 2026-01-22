@@ -20,6 +20,9 @@ struct ContentView: View {
                 TabButton(title: "api", isSelected: selectedTab == 1) {
                     selectedTab = 1
                 }
+                TabButton(title: "subs", isSelected: selectedTab == 2) {
+                    selectedTab = 2
+                }
                 Spacer()
             }
             .background(Color(nsColor: .windowBackgroundColor))
@@ -29,8 +32,10 @@ struct ContentView: View {
             // Tab content
             if selectedTab == 0 {
                 YtDlpView()
-            } else {
+            } else if selectedTab == 1 {
                 APISearchView()
+            } else {
+                SubsView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
