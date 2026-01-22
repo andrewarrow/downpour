@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var isDownloading: Bool = false
     @State private var progress: Double = 0.0
     @State private var progressText: String = ""
+    @State private var thumbnails: [URL] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,17 +38,52 @@ struct ContentView: View {
                 .padding(.vertical, 8)
             }
 
-            ScrollView {
+            if !outputText.isEmpty {
                 Text(outputText)
                     .font(.system(.body, design: .monospaced))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundColor(.red)
                     .padding()
-                    .textSelection(.enabled)
+            }
+
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 12) {
+                    ForEach(thumbnails, id: \.self) { url in
+                        if let nsImage = NSImage(contentsOf: url) {
+                            Image(nsImage: nsImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 90)
+                                .cornerRadius(4)
+                        }
+                    }
+                }
+                .padding()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(nsColor: .textBackgroundColor))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            loadThumbnails()
+        }
+    }
+
+    private func loadThumbnails() {
+        let dataDir = URL(fileURLWithPath: "/Users/aa/dev/Downpour/data")
+        let fileManager = FileManager.default
+
+        guard let files = try? fileManager.contentsOfDirectory(at: dataDir, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) else {
+            thumbnails = []
+            return
+        }
+
+        thumbnails = files
+            .filter { $0.pathExtension.lowercased() == "jpg" }
+            .sorted { url1, url2 in
+                let date1 = (try? url1.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+                let date2 = (try? url2.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+                return date1 > date2
+            }
     }
 
     private func startDownload() {
@@ -142,7 +178,7 @@ struct ContentView: View {
                 await downloadThumbnail(url: url)
                 cleanupIntermediateFiles()
                 await MainActor.run {
-                    self.outputText = "Download completed successfully."
+                    self.loadThumbnails()
                     self.isDownloading = false
                     self.urlText = ""
                     self.progress = 0.0
