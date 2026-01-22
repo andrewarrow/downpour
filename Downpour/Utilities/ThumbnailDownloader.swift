@@ -8,20 +8,18 @@ import Foundation
 enum ThumbnailDownloader {
     static func download(videoId: String) async {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
+        process.executableURL = Paths.ytDlpExecutable
+        let outputTemplate = Paths.dataDirectory.appendingPathComponent("%(id)s.%(ext)s").path
         process.arguments = [
             "--write-thumbnail",
             "--skip-download",
             "--convert-thumbnails", "jpg",
-            "-o", "./data/%(id)s.%(ext)s",
+            "-o", outputTemplate,
             "https://www.youtube.com/watch?v=\(videoId)"
         ]
-        let projectDir = "/Users/aa/dev/Downpour"
-        process.currentDirectoryURL = URL(fileURLWithPath: projectDir)
 
         var env = ProcessInfo.processInfo.environment
-        env["PATH"] = "/opt/homebrew/bin:/Users/aa/venv/bin:" + (env["PATH"] ?? "")
-        env["VIRTUAL_ENV"] = "/Users/aa/venv"
+        env["PATH"] = Paths.pathEnvironment
         process.environment = env
 
         do {

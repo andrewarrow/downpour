@@ -75,7 +75,7 @@ struct YtDlpView: View {
     }
 
     private func loadThumbnails() {
-        let dataDir = URL(fileURLWithPath: "/Users/aa/dev/Downpour/data")
+        let dataDir = Paths.dataDirectory
         let fileManager = FileManager.default
 
         guard let files = try? fileManager.contentsOfDirectory(at: dataDir, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) else {
@@ -128,23 +128,20 @@ struct YtDlpView: View {
 
     nonisolated private func runYtDlp(url: String) async {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
+        process.executableURL = Paths.ytDlpExecutable
+        let outputTemplate = Paths.dataDirectory.appendingPathComponent("%(id)s.%(ext)s").path
         process.arguments = [
-            "-o", "./data/%(id)s.%(ext)s",
+            "-o", outputTemplate,
             "--paths", "temp:/tmp",
-            "--ffmpeg-location", "/opt/homebrew/bin/ffmpeg",
+            "--ffmpeg-location", Paths.ffmpegExecutable.path,
             "-f", "bv*[vcodec^=avc1][ext=mp4]+ba[acodec^=mp4a][ext=m4a]/best[ext=mp4][vcodec^=avc1]",
             "--merge-output-format", "mp4",
             "--newline",
             url
         ]
-        let projectDir = "/Users/aa/dev/Downpour"
-        process.currentDirectoryURL = URL(fileURLWithPath: projectDir)
 
-        // Set up environment with venv activated
         var env = ProcessInfo.processInfo.environment
-        env["PATH"] = "/Users/aa/venv/bin:" + (env["PATH"] ?? "")
-        env["VIRTUAL_ENV"] = "/Users/aa/venv"
+        env["PATH"] = Paths.pathEnvironment
         process.environment = env
 
         let pipe = Pipe()
@@ -210,7 +207,7 @@ struct YtDlpView: View {
     }
 
     private func cleanupIntermediateFiles() {
-        let dataDir = URL(fileURLWithPath: "/Users/aa/dev/Downpour/data")
+        let dataDir = Paths.dataDirectory
         let fileManager = FileManager.default
 
         guard let files = try? fileManager.contentsOfDirectory(at: dataDir, includingPropertiesForKeys: nil) else {

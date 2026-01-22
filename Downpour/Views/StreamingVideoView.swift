@@ -197,9 +197,7 @@ struct StreamingVideoView: View {
     }
 
     private func setupPlayerWithResourceLoader(streamURL: URL) {
-        // Create save path - use the project's data directory
-        let dataDir = URL(fileURLWithPath: "/Users/aa/dev/Downpour/data")
-        try? FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
+        let dataDir = Paths.dataDirectory
         let saveURL = dataDir.appendingPathComponent("\(videoId).mp4")
 
         // Create custom URL scheme for interception
@@ -231,7 +229,7 @@ struct StreamingVideoView: View {
         print("[DEBUG] Fetching stream URL via yt-dlp for videoId: \(videoId)")
 
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
+        process.executableURL = Paths.ytDlpExecutable
         process.arguments = [
             "-f", "18/22/best[ext=mp4]",
             "-g",
@@ -239,8 +237,7 @@ struct StreamingVideoView: View {
         ]
 
         var env = ProcessInfo.processInfo.environment
-        env["PATH"] = "/Users/aa/venv/bin:" + (env["PATH"] ?? "")
-        env["VIRTUAL_ENV"] = "/Users/aa/venv"
+        env["PATH"] = Paths.pathEnvironment
         process.environment = env
 
         let pipe = Pipe()
