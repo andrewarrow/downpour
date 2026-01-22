@@ -130,26 +130,63 @@ struct ContentView: View {
             try process.run()
             process.waitUntilExit()
 
-            await MainActor.run {
-                if process.terminationStatus == 0 {
-                    self.outputText = "Download completed successfully."
-                } else {
-                    self.outputText = "Download failed (exit code: \(process.terminationStatus))"
+            pipe.fileHandleForReading.readabilityHandler = nil
+            errorPipe.fileHandleForReading.readabilityHandler = nil
+
+            if process.terminationStatus == 0 {
+                await MainActor.run {
+                    self.progressText = "Downloading thumbnail..."
                 }
-                self.isDownloading = false
-                self.urlText = ""
-                self.progress = 0.0
-                self.progressText = ""
+                await downloadThumbnail(url: url)
+                await MainActor.run {
+                    self.outputText = "Download completed successfully."
+                    self.isDownloading = false
+                    self.urlText = ""
+                    self.progress = 0.0
+                    self.progressText = ""
+                }
+            } else {
+                await MainActor.run {
+                    self.outputText = "Download failed (exit code: \(process.terminationStatus))"
+                    self.isDownloading = false
+                    self.urlText = ""
+                    self.progress = 0.0
+                    self.progressText = ""
+                }
             }
         } catch {
+            pipe.fileHandleForReading.readabilityHandler = nil
+            errorPipe.fileHandleForReading.readabilityHandler = nil
             await MainActor.run {
                 self.outputText = "Error: \(error.localizedDescription)"
                 self.isDownloading = false
             }
         }
+    }
 
-        pipe.fileHandleForReading.readabilityHandler = nil
-        errorPipe.fileHandleForReading.readabilityHandler = nil
+    nonisolated private func downloadThumbnail(url: String) async {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
+        process.arguments = [
+            "--write-thumbnail",
+            "--skip-download",
+            "-o", "./data/%(id)s.%(ext)s",
+            url
+        ]
+        let projectDir = "/Users/aa/dev/Downpour"
+        process.currentDirectoryURL = URL(fileURLWithPath: projectDir)
+
+        var env = ProcessInfo.processInfo.environment
+        env["PATH"] = "/Users/aa/venv/bin:" + (env["PATH"] ?? "")
+        env["VIRTUAL_ENV"] = "/Users/aa/venv"
+        process.environment = env
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            // Thumbnail download is best-effort, don't fail the whole operation
+        }
     }
 }
 
