@@ -173,7 +173,7 @@ struct ContentView: View {
             return
         }
 
-        for file in files where file.pathExtension == "m4a" {
+        for file in files where file.pathExtension == "m4a" || file.pathExtension == "webp" {
             try? fileManager.removeItem(at: file)
         }
     }
@@ -192,7 +192,7 @@ struct ContentView: View {
         process.currentDirectoryURL = URL(fileURLWithPath: projectDir)
 
         var env = ProcessInfo.processInfo.environment
-        env["PATH"] = "/Users/aa/venv/bin:" + (env["PATH"] ?? "")
+        env["PATH"] = "/opt/homebrew/bin:/Users/aa/venv/bin:" + (env["PATH"] ?? "")
         env["VIRTUAL_ENV"] = "/Users/aa/venv"
         process.environment = env
 
