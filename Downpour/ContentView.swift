@@ -56,7 +56,7 @@ struct ContentView: View {
         isDownloading = true
         progress = 0.0
         progressText = "Starting..."
-        outputText = "Starting download...\n"
+        outputText = ""
 
         let url = urlText
 
@@ -112,7 +112,6 @@ struct ContentView: View {
             let data = handle.availableData
             if let str = String(data: data, encoding: .utf8), !str.isEmpty {
                 Task { @MainActor in
-                    self.outputText += str
                     self.parseProgress(from: str)
                 }
             }
@@ -122,7 +121,6 @@ struct ContentView: View {
             let data = handle.availableData
             if let str = String(data: data, encoding: .utf8), !str.isEmpty {
                 Task { @MainActor in
-                    self.outputText += str
                     self.parseProgress(from: str)
                 }
             }
@@ -133,7 +131,11 @@ struct ContentView: View {
             process.waitUntilExit()
 
             await MainActor.run {
-                self.outputText += "\nDownload completed with exit code: \(process.terminationStatus)\n"
+                if process.terminationStatus == 0 {
+                    self.outputText = "Download completed successfully."
+                } else {
+                    self.outputText = "Download failed (exit code: \(process.terminationStatus))"
+                }
                 self.isDownloading = false
                 self.urlText = ""
                 self.progress = 0.0
@@ -141,7 +143,7 @@ struct ContentView: View {
             }
         } catch {
             await MainActor.run {
-                self.outputText += "\nError: \(error.localizedDescription)\n"
+                self.outputText = "Error: \(error.localizedDescription)"
                 self.isDownloading = false
             }
         }
