@@ -223,28 +223,10 @@ struct YtDlpView: View {
     }
 
     nonisolated private func downloadThumbnail(url: String) async {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
-        process.arguments = [
-            "--write-thumbnail",
-            "--skip-download",
-            "--convert-thumbnails", "jpg",
-            "-o", "./data/%(id)s.%(ext)s",
-            url
-        ]
-        let projectDir = "/Users/aa/dev/Downpour"
-        process.currentDirectoryURL = URL(fileURLWithPath: projectDir)
-
-        var env = ProcessInfo.processInfo.environment
-        env["PATH"] = "/opt/homebrew/bin:/Users/aa/venv/bin:" + (env["PATH"] ?? "")
-        env["VIRTUAL_ENV"] = "/Users/aa/venv"
-        process.environment = env
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-        } catch {
-            // Thumbnail download is best-effort, don't fail the whole operation
+        // Extract video ID from URL
+        if let urlComponents = URLComponents(string: url),
+           let videoId = urlComponents.queryItems?.first(where: { $0.name == "v" })?.value {
+            await ThumbnailDownloader.download(videoId: videoId)
         }
     }
 }
