@@ -97,6 +97,12 @@ struct ContentView: View {
         let projectDir = "/Users/aa/dev/Downpour"
         process.currentDirectoryURL = URL(fileURLWithPath: projectDir)
 
+        // Set up environment with venv activated
+        var env = ProcessInfo.processInfo.environment
+        env["PATH"] = "/Users/aa/venv/bin:" + (env["PATH"] ?? "")
+        env["VIRTUAL_ENV"] = "/Users/aa/venv"
+        process.environment = env
+
         let pipe = Pipe()
         let errorPipe = Pipe()
         process.standardOutput = pipe
