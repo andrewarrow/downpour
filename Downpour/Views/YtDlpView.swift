@@ -13,6 +13,7 @@ struct YtDlpView: View {
     @State private var progress: Double = 0.0
     @State private var progressText: String = ""
     @State private var thumbnails: [URL] = []
+    @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,6 +23,7 @@ struct YtDlpView: View {
                 .padding()
                 .background(Color(nsColor: .controlBackgroundColor))
                 .disabled(isDownloading)
+                .focused($isTextFieldFocused)
                 .onSubmit {
                     startDownload()
                 }
@@ -68,6 +70,7 @@ struct YtDlpView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             loadThumbnails()
+            isTextFieldFocused = true
         }
     }
 

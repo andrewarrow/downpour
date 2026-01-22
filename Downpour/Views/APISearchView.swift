@@ -10,6 +10,7 @@ struct APISearchView: View {
     @State private var searchResults: [SearchResult] = []
     @State private var isSearching: Bool = false
     @State private var errorText: String = ""
+    @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,6 +20,7 @@ struct APISearchView: View {
                 .padding()
                 .background(Color(nsColor: .controlBackgroundColor))
                 .disabled(isSearching)
+                .focused($isTextFieldFocused)
                 .onSubmit {
                     performSearch()
                 }
@@ -47,6 +49,9 @@ struct APISearchView: View {
             .background(Color(nsColor: .textBackgroundColor))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            isTextFieldFocused = true
+        }
     }
 
     private func performSearch() {
