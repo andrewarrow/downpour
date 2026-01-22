@@ -489,6 +489,7 @@ struct APISearchView: View {
 }
 
 struct SearchResultCell: View {
+    @Environment(\.openWindow) private var openWindow
     let result: SearchResult
 
     var body: some View {
@@ -520,6 +521,18 @@ struct SearchResultCell: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
+        .onTapGesture {
+            let video = StreamingVideo(videoId: result.id, title: result.title)
+            openWindow(value: video)
+        }
     }
 }
 
