@@ -9,36 +9,54 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
+    @StateObject private var setupManager = SetupManager()
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Tab bar
-            HStack(spacing: 0) {
-                TabButton(title: "yt-dlp", isSelected: selectedTab == 0) {
-                    selectedTab = 0
+        ZStack {
+            VStack(spacing: 0) {
+                // Tab bar
+                HStack(spacing: 0) {
+                    TabButton(title: "yt-dlp", isSelected: selectedTab == 0) {
+                        selectedTab = 0
+                    }
+                    TabButton(title: "api", isSelected: selectedTab == 1) {
+                        selectedTab = 1
+                    }
+                    TabButton(title: "subs", isSelected: selectedTab == 2) {
+                        selectedTab = 2
+                    }
+                    Spacer()
                 }
-                TabButton(title: "api", isSelected: selectedTab == 1) {
-                    selectedTab = 1
+                .background(Color(nsColor: .windowBackgroundColor))
+
+                Divider()
+
+                // Tab content
+                if selectedTab == 0 {
+                    YtDlpView()
+                } else if selectedTab == 1 {
+                    APISearchView()
+                } else {
+                    SubsView()
                 }
-                TabButton(title: "subs", isSelected: selectedTab == 2) {
-                    selectedTab = 2
-                }
-                Spacer()
             }
-            .background(Color(nsColor: .windowBackgroundColor))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .disabled(setupManager.isSetupRequired)
+            .blur(radius: setupManager.isSetupRequired ? 3 : 0)
 
-            Divider()
+            if setupManager.isSetupRequired {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
 
-            // Tab content
-            if selectedTab == 0 {
-                YtDlpView()
-            } else if selectedTab == 1 {
-                APISearchView()
-            } else {
-                SubsView()
+                SetupView(setupManager: setupManager)
+                    .background(Color(nsColor: .windowBackgroundColor))
+                    .cornerRadius(12)
+                    .shadow(radius: 20)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task {
+            await setupManager.checkAndRunSetup()
+        }
     }
 }
 

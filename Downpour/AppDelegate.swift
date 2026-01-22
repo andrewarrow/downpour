@@ -11,7 +11,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
            let screen = NSScreen.main {
             window.setFrame(screen.visibleFrame, display: true)
         }
-
-        YtDlpSetup.ensureYtDlpAvailable()
     }
 }
