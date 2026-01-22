@@ -89,6 +89,8 @@ struct ContentView: View {
         process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
         process.arguments = [
             "-o", "./data/%(id)s.%(ext)s",
+            "--paths", "temp:/tmp",
+            "--ffmpeg-location", "/opt/homebrew/bin/ffmpeg",
             "-f", "bv*[vcodec^=avc1][ext=mp4]+ba[acodec^=mp4a][ext=m4a]/best[ext=mp4][vcodec^=avc1]",
             "--merge-output-format", "mp4",
             "--newline",
