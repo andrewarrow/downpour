@@ -17,17 +17,39 @@ struct DownpourApp: App {
         }
 
         WindowGroup(for: URL.self) { $url in
-            if let url = url {
-                VideoPlayerView(videoURL: url)
+            Group {
+                if let url = url {
+                    VideoPlayerView(videoURL: url)
+                        .onAppear {
+                            print("[DownpourApp] VideoPlayerView window appeared with URL: \(url)")
+                        }
+                } else {
+                    Color.clear
+                        .onAppear {
+                            print("[DownpourApp] VideoPlayerView window appeared with nil URL")
+                        }
+                }
             }
         }
         .defaultSize(width: 800, height: 450)
+        .restorationBehavior(.disabled)
 
         WindowGroup(for: StreamingVideo.self) { $video in
-            if let video = video {
-                StreamingVideoView(videoId: video.videoId, title: video.title)
+            Group {
+                if let video = video {
+                    StreamingVideoView(videoId: video.videoId, title: video.title)
+                        .onAppear {
+                            print("[DownpourApp] StreamingVideoView window appeared with videoId: \(video.videoId), title: \(video.title)")
+                        }
+                } else {
+                    Color.clear
+                        .onAppear {
+                            print("[DownpourApp] StreamingVideoView window appeared with nil video")
+                        }
+                }
             }
         }
         .defaultSize(width: 800, height: 450)
+        .restorationBehavior(.disabled)
     }
 }
