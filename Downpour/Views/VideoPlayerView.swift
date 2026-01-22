@@ -6,12 +6,27 @@
 import SwiftUI
 import AVKit
 
+struct AVPlayerViewWrapper: NSViewRepresentable {
+    let player: AVPlayer?
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.controlsStyle = .floating
+        view.player = player
+        return view
+    }
+
+    func updateNSView(_ nsView: AVPlayerView, context: Context) {
+        nsView.player = player
+    }
+}
+
 struct VideoPlayerView: View {
     let videoURL: URL
     @State private var player: AVPlayer?
 
     var body: some View {
-        VideoPlayer(player: player)
+        AVPlayerViewWrapper(player: player)
             .onAppear {
                 player = AVPlayer(url: videoURL)
                 player?.play()

@@ -140,6 +140,21 @@ class StreamingResourceLoader: NSObject, AVAssetResourceLoaderDelegate, URLSessi
     }
 }
 
+struct StreamingAVPlayerViewWrapper: NSViewRepresentable {
+    let player: AVPlayer?
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.controlsStyle = .floating
+        view.player = player
+        return view
+    }
+
+    func updateNSView(_ nsView: AVPlayerView, context: Context) {
+        nsView.player = player
+    }
+}
+
 struct StreamingVideoView: View {
     let videoId: String
     let title: String
@@ -151,7 +166,7 @@ struct StreamingVideoView: View {
     var body: some View {
         ZStack {
             if let player = player {
-                VideoPlayer(player: player)
+                StreamingAVPlayerViewWrapper(player: player)
             }
 
             if isLoading {
