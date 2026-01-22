@@ -56,7 +56,7 @@ struct SubsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {
             if videos.isEmpty {
-                await loadSubscriptionVideos()
+                await loadFromCacheOrFetch()
             }
         }
     }
@@ -98,6 +98,9 @@ struct SubsView: View {
 
             // Sort by putting newest first (we don't have dates, so just shuffle to mix channels)
             allVideos.shuffle()
+
+            // Save to cache
+            saveToCache(allVideos)
 
             await MainActor.run {
                 videos = allVideos
@@ -257,5 +260,57 @@ struct SubsView: View {
             channelName: channelName,
             viewCount: viewCount
         )
+    }
+
+    // MARK: - Caching
+
+    private func getCacheDirectory() -> URL {
+        let fileManager = FileManager.default
+        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let cacheDir = appSupport.appendingPathComponent("Downpour/cache")
+
+        if !fileManager.fileExists(atPath: cacheDir.path) {
+            try? fileManager.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+        }
+
+        return cacheDir
+    }
+
+    private func getCacheFileURL() -> URL {
+        return getCacheDirectory().appendingPathComponent("subs_videos.json")
+    }
+
+    private func saveToCache(_ videos: [SearchResult]) {
+        let cacheURL = getCacheFileURL()
+        do {
+            let data = try JSONEncoder().encode(videos)
+            try data.write(to: cacheURL)
+        } catch {
+            print("Failed to save cache: \(error)")
+        }
+    }
+
+    private func loadFromCache() -> [SearchResult]? {
+        let cacheURL = getCacheFileURL()
+        guard FileManager.default.fileExists(atPath: cacheURL.path) else {
+            return nil
+        }
+
+        do {
+            let data = try Data(contentsOf: cacheURL)
+            let videos = try JSONDecoder().decode([SearchResult].self, from: data)
+            return videos
+        } catch {
+            print("Failed to load cache: \(error)")
+            return nil
+        }
+    }
+
+    private func loadFromCacheOrFetch() async {
+        if let cached = loadFromCache() {
+            videos = cached
+        } else {
+            await loadSubscriptionVideos()
+        }
     }
 }

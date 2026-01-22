@@ -5,7 +5,7 @@
 
 import Foundation
 
-struct SearchResult: Identifiable {
+struct SearchResult: Identifiable, Codable {
     let id: String
     let title: String
     let thumbnailURL: URL?
