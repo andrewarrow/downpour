@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.openWindow) private var openWindow
     @State private var urlText: String = ""
     @State private var outputText: String = ""
     @State private var isDownloading: Bool = false
@@ -54,6 +55,10 @@ struct ContentView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(height: 90)
                                 .cornerRadius(4)
+                                .onTapGesture {
+                                    let videoURL = url.deletingPathExtension().appendingPathExtension("mp4")
+                                    openWindow(value: videoURL)
+                                }
                         }
                     }
                 }

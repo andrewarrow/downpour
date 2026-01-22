@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVKit
 
 @main
 struct DownpourApp: App {
@@ -15,6 +16,29 @@ struct DownpourApp: App {
         WindowGroup {
             ContentView()
         }
+
+        WindowGroup(for: URL.self) { $url in
+            if let url = url {
+                VideoPlayerView(videoURL: url)
+            }
+        }
+        .defaultSize(width: 800, height: 450)
+    }
+}
+
+struct VideoPlayerView: View {
+    let videoURL: URL
+    @State private var player: AVPlayer?
+
+    var body: some View {
+        VideoPlayer(player: player)
+            .onAppear {
+                player = AVPlayer(url: videoURL)
+                player?.play()
+            }
+            .onDisappear {
+                player?.pause()
+            }
     }
 }
 
