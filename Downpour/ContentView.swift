@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var urlText: String = ""
     @State private var outputText: String = ""
     @State private var isDownloading: Bool = false
+    @State private var progress: Double = 0.0
+    @State private var progressText: String = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,6 +25,17 @@ struct ContentView: View {
                 .onSubmit {
                     startDownload()
                 }
+
+            if isDownloading {
+                VStack(spacing: 4) {
+                    ProgressView(value: progress, total: 100.0)
+                    Text(progressText)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
 
             ScrollView {
                 Text(outputText)
@@ -41,22 +54,44 @@ struct ContentView: View {
         guard !urlText.isEmpty else { return }
 
         isDownloading = true
+        progress = 0.0
+        progressText = "Starting..."
         outputText = "Starting download...\n"
 
         let url = urlText
 
-        Task {
+        Task.detached(priority: .userInitiated) {
             await runYtDlp(url: url)
         }
     }
 
-    private func runYtDlp(url: String) async {
+    private func parseProgress(from str: String) {
+        // yt-dlp outputs: [download]  45.2% of 150.00MiB at 5.00MiB/s ETA 00:15
+        if let range = str.range(of: #"(\d+\.?\d*)%"#, options: .regularExpression) {
+            let percentStr = str[range].dropLast() // remove %
+            if let percent = Double(percentStr) {
+                Task { @MainActor in
+                    progress = percent
+                }
+            }
+        }
+        // Extract the full progress line for display
+        if str.contains("[download]") && str.contains("%") {
+            let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            Task { @MainActor in
+                progressText = trimmed
+            }
+        }
+    }
+
+    nonisolated private func runYtDlp(url: String) async {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yt-dlp")
+        process.executableURL = URL(fileURLWithPath: "/Users/aa/venv/bin/yt-dlp")
         process.arguments = [
             "-o", "./data/%(id)s.%(ext)s",
             "-f", "bv*[vcodec^=avc1][ext=mp4]+ba[acodec^=mp4a][ext=m4a]/best[ext=mp4][vcodec^=avc1]",
             "--merge-output-format", "mp4",
+            "--newline",
             url
         ]
         let projectDir = "/Users/aa/dev/Downpour"
@@ -71,7 +106,8 @@ struct ContentView: View {
             let data = handle.availableData
             if let str = String(data: data, encoding: .utf8), !str.isEmpty {
                 Task { @MainActor in
-                    outputText += str
+                    self.outputText += str
+                    self.parseProgress(from: str)
                 }
             }
         }
@@ -80,7 +116,8 @@ struct ContentView: View {
             let data = handle.availableData
             if let str = String(data: data, encoding: .utf8), !str.isEmpty {
                 Task { @MainActor in
-                    outputText += str
+                    self.outputText += str
+                    self.parseProgress(from: str)
                 }
             }
         }
@@ -90,14 +127,16 @@ struct ContentView: View {
             process.waitUntilExit()
 
             await MainActor.run {
-                outputText += "\nDownload completed with exit code: \(process.terminationStatus)\n"
-                isDownloading = false
-                urlText = ""
+                self.outputText += "\nDownload completed with exit code: \(process.terminationStatus)\n"
+                self.isDownloading = false
+                self.urlText = ""
+                self.progress = 0.0
+                self.progressText = ""
             }
         } catch {
             await MainActor.run {
-                outputText += "\nError: \(error.localizedDescription)\n"
-                isDownloading = false
+                self.outputText += "\nError: \(error.localizedDescription)\n"
+                self.isDownloading = false
             }
         }
 
