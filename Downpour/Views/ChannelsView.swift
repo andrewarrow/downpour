@@ -6,6 +6,8 @@
 import SwiftUI
 
 struct ChannelsView: View {
+    let subsFile: URL
+
     @State private var subscriptions: [Subscription] = []
     @State private var errorText: String = ""
     @State private var navigationPath = NavigationPath()
@@ -46,10 +48,6 @@ struct ChannelsView: View {
 
     private func loadSubscriptions() {
         do {
-            guard let subsFile = Paths.getFirstSubsFile() else {
-                throw NSError(domain: "ChannelsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "No subscription files found in subs directory"])
-            }
-
             let data = try Data(contentsOf: subsFile)
             subscriptions = try JSONDecoder().decode([Subscription].self, from: data)
         } catch {

@@ -6,6 +6,8 @@
 import SwiftUI
 
 struct SubsView: View {
+    let subsFile: URL
+
     @State private var videos: [SearchResult] = []
     @State private var isLoading: Bool = false
     @State private var errorText: String = ""
@@ -115,10 +117,6 @@ struct SubsView: View {
     }
 
     private func loadSubscriptions() throws -> [Subscription] {
-        guard let subsFile = Paths.getFirstSubsFile() else {
-            throw NSError(domain: "SubsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "No subscription files found in subs directory"])
-        }
-
         let data = try Data(contentsOf: subsFile)
         let subscriptions = try JSONDecoder().decode([Subscription].self, from: data)
         return subscriptions
@@ -261,13 +259,12 @@ struct SubsView: View {
 
     // MARK: - Caching
 
-    private func getCacheFileURL() -> URL? {
-        guard let subsFile = Paths.getFirstSubsFile() else { return nil }
+    private func getCacheFileURL() -> URL {
         return Paths.cacheFileURL(forSubsFile: subsFile)
     }
 
     private func saveToCache(_ videos: [SearchResult]) {
-        guard let cacheURL = getCacheFileURL() else { return }
+        let cacheURL = getCacheFileURL()
         do {
             let data = try JSONEncoder().encode(videos)
             try data.write(to: cacheURL)
@@ -277,8 +274,8 @@ struct SubsView: View {
     }
 
     private func loadFromCache() -> [SearchResult]? {
-        guard let cacheURL = getCacheFileURL(),
-              FileManager.default.fileExists(atPath: cacheURL.path) else {
+        let cacheURL = getCacheFileURL()
+        guard FileManager.default.fileExists(atPath: cacheURL.path) else {
             return nil
         }
 

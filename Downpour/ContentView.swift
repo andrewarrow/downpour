@@ -10,6 +10,8 @@ import AppKit
 
 struct ContentView: View {
     @State private var selectedTab = 0
+    @State private var subsFiles: [URL] = []
+    @State private var selectedSubsFile: URL?
     @StateObject private var setupManager = SetupManager()
 
     var body: some View {
@@ -30,6 +32,15 @@ struct ContentView: View {
                         selectedTab = 3
                     }
                     Spacer()
+                    Picker("", selection: $selectedSubsFile) {
+                        ForEach(subsFiles, id: \.self) { file in
+                            Text(file.deletingPathExtension().lastPathComponent)
+                                .tag(file as URL?)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 150)
+                    .padding(.trailing, 8)
                     Button("Open Data Folder") {
                         NSWorkspace.shared.open(Paths.dataDirectory)
                     }
@@ -46,14 +57,23 @@ struct ContentView: View {
                 } else if selectedTab == 1 {
                     APISearchView()
                 } else if selectedTab == 2 {
-                    SubsView()
+                    if let subsFile = selectedSubsFile {
+                        SubsView(subsFile: subsFile)
+                            .id(subsFile)
+                    }
                 } else {
-                    ChannelsView()
+                    if let subsFile = selectedSubsFile {
+                        ChannelsView(subsFile: subsFile)
+                            .id(subsFile)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .disabled(setupManager.isSetupRequired)
             .blur(radius: setupManager.isSetupRequired ? 3 : 0)
+            .onAppear {
+                loadSubsFiles()
+            }
 
             if setupManager.isSetupRequired {
                 Color.black.opacity(0.4)
@@ -67,6 +87,13 @@ struct ContentView: View {
         }
         .task {
             await setupManager.checkAndRunSetup()
+        }
+    }
+
+    private func loadSubsFiles() {
+        subsFiles = Paths.getSubsFiles()
+        if selectedSubsFile == nil, let first = subsFiles.first {
+            selectedSubsFile = first
         }
     }
 }
