@@ -1,0 +1,64 @@
+[
+  {
+    "contentDetails": {
+      "activityType": "all",
+      "newItemCount": 0,
+      "totalItemCount": 0
+    },
+    "etag": "",
+    "id": "",
+    "kind": "youtube#subscription",
+    "snippet": {
+      "channelId": "UCww20UJ5hgo00WDoVxDVQcQ",
+      "description": "",
+      "publishedAt": "2026-01-22T14:42:39.968Z",
+      "resourceId": {
+        "channelId": "UCww20UJ5hgo00WDoVxDVQcQ",
+        "kind": "youtube#channel"
+      },
+      "thumbnails": {
+        "default": {
+          "url": "https://yt3.googleusercontent.com/SttcEeNv-2-jjYfE3uExorm7oGq1ABqPwAGgjQE1lzwB03p7I3RSYzVVJXtQQ452AYEBOz4KHw=s176-c-k-c0x00ffffff-no-rj"
+        },
+        "high": {
+          "url": "https://yt3.googleusercontent.com/SttcEeNv-2-jjYfE3uExorm7oGq1ABqPwAGgjQE1lzwB03p7I3RSYzVVJXtQQ452AYEBOz4KHw=s176-c-k-c0x00ffffff-no-rj"
+        },
+        "medium": {
+          "url": "https://yt3.googleusercontent.com/SttcEeNv-2-jjYfE3uExorm7oGq1ABqPwAGgjQE1lzwB03p7I3RSYzVVJXtQQ452AYEBOz4KHw=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "title": "Piano Rock"
+    }
+  },
+  {
+    "contentDetails": {
+      "activityType": "all",
+      "newItemCount": 0,
+      "totalItemCount": 0
+    },
+    "etag": "",
+    "id": "",
+    "kind": "youtube#subscription",
+    "snippet": {
+      "channelId": "UC5UCr4Uag-S9cvipbx4aQNA",
+      "description": "",
+      "publishedAt": "2026-01-22T14:42:39.968Z",
+      "resourceId": {
+        "channelId": "UC5UCr4Uag-S9cvipbx4aQNA",
+        "kind": "youtube#channel"
+      },
+      "thumbnails": {
+        "default": {
+          "url": "https://yt3.googleusercontent.com/MbR2blICZEWKqDmU6sXY0j24u5EcwBagnmWjZ5SU3VmkCGndjvT4gt8cOOb-PvukHpWVQflI=s176-c-k-c0x00ffffff-no-rj"
+        },
+        "high": {
+          "url": "https://yt3.googleusercontent.com/MbR2blICZEWKqDmU6sXY0j24u5EcwBagnmWjZ5SU3VmkCGndjvT4gt8cOOb-PvukHpWVQflI=s176-c-k-c0x00ffffff-no-rj"
+        },
+        "medium": {
+          "url": "https://yt3.googleusercontent.com/MbR2blICZEWKqDmU6sXY0j24u5EcwBagnmWjZ5SU3VmkCGndjvT4gt8cOOb-PvukHpWVQflI=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "title": "Zach Sang Show Clips"
+    }
+  }
+]

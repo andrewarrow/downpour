@@ -1,0 +1,33 @@
+[
+  {
+    "contentDetails": {
+      "activityType": "all",
+      "newItemCount": 0,
+      "totalItemCount": 0
+    },
+    "etag": "",
+    "id": "",
+    "kind": "youtube#subscription",
+    "snippet": {
+      "channelId": "UCDRIjKy6eZOvKtOELtTdeUA",
+      "description": "",
+      "publishedAt": "2026-01-22T14:42:39.968Z",
+      "resourceId": {
+        "channelId": "UCDRIjKy6eZOvKtOELtTdeUA",
+        "kind": "youtube#channel"
+      },
+      "thumbnails": {
+        "default": {
+          "url": "https://yt3.ggpht.com/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
+        },
+        "high": {
+          "url": "https://yt3.ggpht.com/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
+        },
+        "medium": {
+          "url": "https://yt3.ggpht.com/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "title": "Breaking Points"
+    }
+  }
+]

@@ -187,12 +187,21 @@ struct APISearchView: View {
             viewCount = ""
         }
 
+        let publishedText: String?
+        if let publishedObj = renderer["publishedTimeText"] as? [String: Any],
+           let text = publishedObj["simpleText"] as? String {
+            publishedText = text
+        } else {
+            publishedText = nil
+        }
+
         return SearchResult(
             id: videoId,
             title: title,
             thumbnailURL: thumbnailURL,
             channelName: channelName,
-            viewCount: viewCount
+            viewCount: viewCount,
+            publishedText: publishedText
         )
     }
 }

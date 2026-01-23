@@ -96,8 +96,8 @@ struct SubsView: View {
                 }
             }
 
-            // Sort by putting newest first (we don't have dates, so just shuffle to mix channels)
-            allVideos.shuffle()
+            // Sort by created_at descending (newest first)
+            allVideos.sort { $0.approximateSecondsAgo < $1.approximateSecondsAgo }
 
             // Save to cache
             saveToCache(allVideos)
@@ -253,12 +253,21 @@ struct SubsView: View {
             viewCount = ""
         }
 
+        let publishedText: String?
+        if let publishedObj = renderer["publishedTimeText"] as? [String: Any],
+           let text = publishedObj["simpleText"] as? String {
+            publishedText = text
+        } else {
+            publishedText = nil
+        }
+
         return SearchResult(
             id: videoId,
             title: title,
             thumbnailURL: thumbnailURL,
             channelName: channelName,
-            viewCount: viewCount
+            viewCount: viewCount,
+            publishedText: publishedText
         )
     }
 
