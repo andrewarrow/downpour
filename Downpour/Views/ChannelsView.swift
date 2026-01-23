@@ -46,21 +46,11 @@ struct ChannelsView: View {
 
     private func loadSubscriptions() {
         do {
-            let url: URL
-            if let bundleURL = Bundle.main.url(forResource: "subs", withExtension: "json") {
-                url = bundleURL
-            } else {
-                let fileManager = FileManager.default
-                let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-                let appDir = appSupport.appendingPathComponent("Downpour")
-                url = appDir.appendingPathComponent("subs.json")
-
-                if !fileManager.fileExists(atPath: url.path) {
-                    throw NSError(domain: "ChannelsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "subs.json not found"])
-                }
+            guard let subsFile = Paths.getFirstSubsFile() else {
+                throw NSError(domain: "ChannelsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "No subscription files found in subs directory"])
             }
 
-            let data = try Data(contentsOf: url)
+            let data = try Data(contentsOf: subsFile)
             subscriptions = try JSONDecoder().decode([Subscription].self, from: data)
         } catch {
             errorText = "Failed to load channels: \(error.localizedDescription)"

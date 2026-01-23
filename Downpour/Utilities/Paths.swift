@@ -20,6 +20,68 @@ enum Paths {
         return dataDir
     }
 
+    static var subsDirectory: URL {
+        let subsDir = applicationSupport.appendingPathComponent("subs")
+        let fileManager = FileManager.default
+
+        // Create directory if needed
+        if !fileManager.fileExists(atPath: subsDir.path) {
+            try? fileManager.createDirectory(at: subsDir, withIntermediateDirectories: true)
+        }
+
+        // Check if empty and copy from bundle if so
+        let contents = (try? fileManager.contentsOfDirectory(atPath: subsDir.path)) ?? []
+        if contents.isEmpty {
+            copyBundleSubsFiles(to: subsDir)
+        }
+
+        return subsDir
+    }
+
+    static var cacheDirectory: URL {
+        let cacheDir = applicationSupport.appendingPathComponent("cache")
+        try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+        return cacheDir
+    }
+
+    private static func copyBundleSubsFiles(to destination: URL) {
+        let fileManager = FileManager.default
+
+        guard let resourceURL = Bundle.main.resourceURL else { return }
+        let bundleSubsDir = resourceURL.appendingPathComponent("subs")
+
+        guard let files = try? fileManager.contentsOfDirectory(at: bundleSubsDir, includingPropertiesForKeys: nil) else {
+            return
+        }
+
+        for file in files where file.pathExtension == "json" {
+            let destFile = destination.appendingPathComponent(file.lastPathComponent)
+            try? fileManager.copyItem(at: file, to: destFile)
+        }
+    }
+
+    static func getSubsFiles() -> [URL] {
+        let fileManager = FileManager.default
+        let subsDir = subsDirectory
+
+        guard let files = try? fileManager.contentsOfDirectory(at: subsDir, includingPropertiesForKeys: nil) else {
+            return []
+        }
+
+        return files
+            .filter { $0.pathExtension == "json" }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+    }
+
+    static func getFirstSubsFile() -> URL? {
+        return getSubsFiles().first
+    }
+
+    static func cacheFileURL(forSubsFile subsFile: URL) -> URL {
+        let baseName = subsFile.deletingPathExtension().lastPathComponent
+        return cacheDirectory.appendingPathComponent("\(baseName)_videos.json")
+    }
+
     static var venvDirectory: URL {
         applicationSupport.appendingPathComponent("venv")
     }

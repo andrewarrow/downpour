@@ -13,6 +13,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000BE0FC2F225A9900BD3DBE /* Downpour */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFolders = (
+				subs,
+			);
 			path = Downpour;
 			sourceTree = "<group>";
 		};

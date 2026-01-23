@@ -115,23 +115,11 @@ struct SubsView: View {
     }
 
     private func loadSubscriptions() throws -> [Subscription] {
-        // Try bundle first, then fall back to app support directory
-        let url: URL
-        if let bundleURL = Bundle.main.url(forResource: "subs", withExtension: "json") {
-            url = bundleURL
-        } else {
-            // Fallback: try loading from Documents or a known path
-            let fileManager = FileManager.default
-            let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-            let appDir = appSupport.appendingPathComponent("Downpour")
-            url = appDir.appendingPathComponent("subs.json")
-
-            if !fileManager.fileExists(atPath: url.path) {
-                throw NSError(domain: "SubsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "subs.json not found"])
-            }
+        guard let subsFile = Paths.getFirstSubsFile() else {
+            throw NSError(domain: "SubsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "No subscription files found in subs directory"])
         }
 
-        let data = try Data(contentsOf: url)
+        let data = try Data(contentsOf: subsFile)
         let subscriptions = try JSONDecoder().decode([Subscription].self, from: data)
         return subscriptions
     }
@@ -273,24 +261,13 @@ struct SubsView: View {
 
     // MARK: - Caching
 
-    private func getCacheDirectory() -> URL {
-        let fileManager = FileManager.default
-        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let cacheDir = appSupport.appendingPathComponent("Downpour/cache")
-
-        if !fileManager.fileExists(atPath: cacheDir.path) {
-            try? fileManager.createDirectory(at: cacheDir, withIntermediateDirectories: true)
-        }
-
-        return cacheDir
-    }
-
-    private func getCacheFileURL() -> URL {
-        return getCacheDirectory().appendingPathComponent("subs_videos.json")
+    private func getCacheFileURL() -> URL? {
+        guard let subsFile = Paths.getFirstSubsFile() else { return nil }
+        return Paths.cacheFileURL(forSubsFile: subsFile)
     }
 
     private func saveToCache(_ videos: [SearchResult]) {
-        let cacheURL = getCacheFileURL()
+        guard let cacheURL = getCacheFileURL() else { return }
         do {
             let data = try JSONEncoder().encode(videos)
             try data.write(to: cacheURL)
@@ -300,8 +277,8 @@ struct SubsView: View {
     }
 
     private func loadFromCache() -> [SearchResult]? {
-        let cacheURL = getCacheFileURL()
-        guard FileManager.default.fileExists(atPath: cacheURL.path) else {
+        guard let cacheURL = getCacheFileURL(),
+              FileManager.default.fileExists(atPath: cacheURL.path) else {
             return nil
         }
 
