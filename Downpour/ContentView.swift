@@ -12,6 +12,8 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var subsFiles: [URL] = []
     @State private var selectedSubsFile: URL?
+    @State private var showingNewCategoryAlert = false
+    @State private var newCategoryName = ""
     @StateObject private var setupManager = SetupManager()
 
     var body: some View {
@@ -32,13 +34,30 @@ struct ContentView: View {
                         selectedTab = 3
                     }
                     Spacer()
-                    Picker("", selection: $selectedSubsFile) {
+                    Menu {
                         ForEach(subsFiles, id: \.self) { file in
-                            Text(file.deletingPathExtension().lastPathComponent)
-                                .tag(file as URL?)
+                            Button(action: { selectedSubsFile = file }) {
+                                HStack {
+                                    Text(file.deletingPathExtension().lastPathComponent)
+                                    if file == selectedSubsFile {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        Divider()
+                        Button("Add New Category...") {
+                            newCategoryName = ""
+                            showingNewCategoryAlert = true
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(selectedSubsFile?.deletingPathExtension().lastPathComponent ?? "Select")
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10))
                         }
                     }
-                    .pickerStyle(.menu)
+                    .menuStyle(.borderlessButton)
                     .frame(width: 150)
                     .padding(.trailing, 8)
                     Button("Open Data Folder") {
@@ -88,6 +107,15 @@ struct ContentView: View {
         .task {
             await setupManager.checkAndRunSetup()
         }
+        .alert("New Category", isPresented: $showingNewCategoryAlert) {
+            TextField("Category name", text: $newCategoryName)
+            Button("Cancel", role: .cancel) { }
+            Button("Create") {
+                createNewCategory()
+            }
+        } message: {
+            Text("Enter a name for the new category:")
+        }
     }
 
     private func loadSubsFiles() {
@@ -95,6 +123,31 @@ struct ContentView: View {
         if selectedSubsFile == nil, let first = subsFiles.first {
             selectedSubsFile = first
         }
+    }
+
+    private func createNewCategory() {
+        let sanitized = sanitizeFilename(newCategoryName)
+        guard !sanitized.isEmpty else { return }
+
+        let newFile = Paths.subsDirectory.appendingPathComponent("\(sanitized).json")
+
+        // Don't overwrite existing file
+        guard !FileManager.default.fileExists(atPath: newFile.path) else { return }
+
+        do {
+            try "[]".write(to: newFile, atomically: true, encoding: .utf8)
+            loadSubsFiles()
+            selectedSubsFile = newFile
+        } catch {
+            print("Failed to create category: \(error)")
+        }
+    }
+
+    private func sanitizeFilename(_ name: String) -> String {
+        let lowercased = name.lowercased()
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let filtered = lowercased.unicodeScalars.filter { allowed.contains($0) }
+        return String(String.UnicodeScalarView(filtered))
     }
 }
 
