@@ -15,6 +15,20 @@
   },
   {
     "snippet" : {
+      "resourceId" : {
+        "channelId" : "UCNzCTpocEOcwJj8RDbDJTpw"
+      },
+      "channelId" : "UCNzCTpocEOcwJj8RDbDJTpw",
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/gNhvOa1379zGqM-TpvUBHbScqzyP8ISNnUc1V0f_edKVZDXagECayhByBYzrjiEwvujZwwB-=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "title" : "The Midnight Specialist"
+    }
+  },
+  {
+    "snippet" : {
       "channelId" : "UC5UCr4Uag-S9cvipbx4aQNA",
       "title" : "Zach Sang Show Clips",
       "thumbnails" : {
