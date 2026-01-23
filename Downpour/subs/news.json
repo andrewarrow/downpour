@@ -1,33 +1,100 @@
 [
   {
-    "contentDetails": {
-      "activityType": "all",
-      "newItemCount": 0,
-      "totalItemCount": 0
-    },
-    "etag": "",
-    "id": "",
-    "kind": "youtube#subscription",
-    "snippet": {
-      "channelId": "UCDRIjKy6eZOvKtOELtTdeUA",
-      "description": "",
-      "publishedAt": "2026-01-22T14:42:39.968Z",
-      "resourceId": {
-        "channelId": "UCDRIjKy6eZOvKtOELtTdeUA",
-        "kind": "youtube#channel"
+    "snippet" : {
+      "channelId" : "UCDRIjKy6eZOvKtOELtTdeUA",
+      "resourceId" : {
+        "channelId" : "UCDRIjKy6eZOvKtOELtTdeUA"
       },
-      "thumbnails": {
-        "default": {
-          "url": "https://yt3.ggpht.com/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
-        },
-        "high": {
-          "url": "https://yt3.ggpht.com/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
-        },
-        "medium": {
-          "url": "https://yt3.ggpht.com/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.ggpht.com\/cGmY4x-DMQwLeGiQH3uHc0qQzQdrv-ygrASjf8hI0XPshxoYtWn1X2CdrMo5uAae4HqLFl06wg=s176-c-k-c0x00ffffff-no-rj"
         }
       },
-      "title": "Breaking Points"
+      "title" : "Breaking Points"
+    }
+  },
+  {
+    "snippet" : {
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/bEvmu5a2PUTokDPxgxSwS65A9NjESfpDi36suWWhB0aw6rOmeiUMDBdsxfLSs4Wg4pxnCfCzKw=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "channelId" : "UCatt7TBjfBkiJWx8khav_Gg",
+      "title" : "Piers Morgan Uncensored",
+      "resourceId" : {
+        "channelId" : "UCatt7TBjfBkiJWx8khav_Gg"
+      }
+    }
+  },
+  {
+    "snippet" : {
+      "resourceId" : {
+        "channelId" : "UCqnbDFdCpuN8CMEg0VuEBqA"
+      },
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/ytc\/AIdro_niRq8CFu_t0QX45kIzJ58GtS9zlO2SGo7wArxG9gy6uEc=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "channelId" : "UCqnbDFdCpuN8CMEg0VuEBqA",
+      "title" : "The New York Times"
+    }
+  },
+  {
+    "snippet" : {
+      "channelId" : "UCvuqg98hTSl3r6CtybC81vA",
+      "resourceId" : {
+        "channelId" : "UCvuqg98hTSl3r6CtybC81vA"
+      },
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/wsIREGziO264LGrcRWF01uXAa8UjCbbMIKjLsrM5btq2D9YRQov1Zq4NeblF8ECCk-I0l5t1=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "title" : "Free Media"
+    }
+  },
+  {
+    "snippet" : {
+      "title" : "Hoover Institution",
+      "channelId" : "UCzWwWbbKHg4aodl0S35R6XA",
+      "resourceId" : {
+        "channelId" : "UCzWwWbbKHg4aodl0S35R6XA"
+      },
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/mtWmTZFvXSQqIXWDApMQEkAt8yVQ89Yd-qXCU2wUJMXoEgFW2YoMHaPLlwa1h1Y-vV-kgymCOw=s176-c-k-c0x00ffffff-no-rj"
+        }
+      }
+    }
+  },
+  {
+    "snippet" : {
+      "channelId" : "UC-PtPKlLWDQpkKgHsIbKt3g",
+      "resourceId" : {
+        "channelId" : "UC-PtPKlLWDQpkKgHsIbKt3g"
+      },
+      "title" : "EMILYSAVESAMERICA",
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/ReYJtlRaPQuDah-SDZYYZEHFphrLGD8T_4lqEShLxxTvizahbJOOno63_yz8XXfbiFXtV60xivc=s176-c-k-c0x00ffffff-no-rj"
+        }
+      }
+    }
+  },
+  {
+    "snippet" : {
+      "title" : "The Prof G Pod – Scott Galloway",
+      "resourceId" : {
+        "channelId" : "UC1E1SVcVyU3ntWMSQEp38Yw"
+      },
+      "channelId" : "UC1E1SVcVyU3ntWMSQEp38Yw",
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/YY2f8pLntAhTaMQ_xFLn5SXh4ckFxlz1xe3hDHBovdeHsNZFrTfsinnPhP23jlw4K1Yej238ekw=s176-c-k-c0x00ffffff-no-rj"
+        }
+      }
     }
   }
 ]

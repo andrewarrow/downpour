@@ -1,0 +1,30 @@
+[
+  {
+    "snippet" : {
+      "channelId" : "UC0k_--YLuTNuDvq1Dw4zHmw",
+      "title" : "Andy Roddick's Served Media",
+      "resourceId" : {
+        "channelId" : "UC0k_--YLuTNuDvq1Dw4zHmw"
+      },
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.ggpht.com\/NaEpIijt4YmG8j4F-5eEFYINhCYKZX5wH1WSp2JLyG5qHm7-CJ548v9yIEm3Fs6MWKvyKxsw=s176-c-k-c0x00ffffff-no-rj"
+        }
+      }
+    }
+  },
+  {
+    "snippet" : {
+      "resourceId" : {
+        "channelId" : "UCce3D2-VJRAZI8Mbwq9uHqQ"
+      },
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.googleusercontent.com\/uw0ZDLm2SUrobo2ywF9egWUizEy-ezu8xdLH5FaM1BFy7kKPbYxYW7NZSovhB38f_1N7z44zxXY=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "channelId" : "UCce3D2-VJRAZI8Mbwq9uHqQ",
+      "title" : "Nothing Major Show"
+    }
+  }
+]

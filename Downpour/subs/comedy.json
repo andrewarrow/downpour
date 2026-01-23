@@ -1,0 +1,30 @@
+[
+  {
+    "snippet" : {
+      "resourceId" : {
+        "channelId" : "UCwWhs_6x42TyRM4Wstoq8HA"
+      },
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.ggpht.com\/clBZ7D-wYk_ysfU_X0U2GAN3lAxkP5drwADfpuqvSrbPzkcemCXx9XQV8XEXqjSK3uMYiReJPQ=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "channelId" : "UCwWhs_6x42TyRM4Wstoq8HA",
+      "title" : "The Daily Show"
+    }
+  },
+  {
+    "snippet" : {
+      "resourceId" : {
+        "channelId" : "UChnbMXHvx7ttObiOWxaE9ow"
+      },
+      "channelId" : "UChnbMXHvx7ttObiOWxaE9ow",
+      "thumbnails" : {
+        "default" : {
+          "url" : "https:\/\/yt3.ggpht.com\/ytc\/AIdro_kA4sWlxOwLQrbPVVjC1nNSN2V0DaDIJZozn3pALtCWsQ=s176-c-k-c0x00ffffff-no-rj"
+        }
+      },
+      "title" : "Neal Brennan"
+    }
+  }
+]
