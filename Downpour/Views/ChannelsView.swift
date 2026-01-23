@@ -4,9 +4,11 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct ChannelsView: View {
     let subsFile: URL
+    let allSubsFiles: [URL]
 
     @State private var subscriptions: [Subscription] = []
     @State private var errorText: String = ""
@@ -26,6 +28,18 @@ struct ChannelsView: View {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 140))], spacing: 16) {
                         ForEach(subscriptions) { sub in
                             ChannelCell(subscription: sub)
+                                .contextMenu {
+                                    Button("Copy YouTube URL") {
+                                        copyChannelURL(sub)
+                                    }
+                                    Menu("Move to") {
+                                        ForEach(allSubsFiles.filter { $0 != subsFile }, id: \.self) { targetFile in
+                                            Button(targetFile.deletingPathExtension().lastPathComponent) {
+                                                moveChannel(sub, to: targetFile)
+                                            }
+                                        }
+                                    }
+                                }
                                 .onTapGesture {
                                     navigationPath.append(sub)
                                 }
@@ -52,6 +66,36 @@ struct ChannelsView: View {
             subscriptions = try JSONDecoder().decode([Subscription].self, from: data)
         } catch {
             errorText = "Failed to load channels: \(error.localizedDescription)"
+        }
+    }
+
+    private func copyChannelURL(_ subscription: Subscription) {
+        let url = "https://www.youtube.com/channel/\(subscription.id)"
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(url, forType: .string)
+    }
+
+    private func moveChannel(_ subscription: Subscription, to targetFile: URL) {
+        do {
+            // Remove from current file
+            subscriptions.removeAll { $0.id == subscription.id }
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let currentData = try encoder.encode(subscriptions)
+            try currentData.write(to: subsFile)
+
+            // Add to target file
+            var targetSubscriptions: [Subscription] = []
+            if let targetData = try? Data(contentsOf: targetFile) {
+                targetSubscriptions = (try? JSONDecoder().decode([Subscription].self, from: targetData)) ?? []
+            }
+            targetSubscriptions.append(subscription)
+            let targetOutputData = try encoder.encode(targetSubscriptions)
+            try targetOutputData.write(to: targetFile)
+        } catch {
+            print("Failed to move channel: \(error)")
+            // Reload to restore state
+            loadSubscriptions()
         }
     }
 }

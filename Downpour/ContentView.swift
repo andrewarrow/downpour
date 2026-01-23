@@ -82,7 +82,7 @@ struct ContentView: View {
                     }
                 } else {
                     if let subsFile = selectedSubsFile {
-                        ChannelsView(subsFile: subsFile)
+                        ChannelsView(subsFile: subsFile, allSubsFiles: subsFiles)
                             .id(subsFile)
                     }
                 }
