@@ -148,17 +148,70 @@ class StreamingResourceLoader: NSObject, AVAssetResourceLoaderDelegate, URLSessi
     }
 }
 
+class StreamingCustomAVPlayerView: AVPlayerView {
+    var keyEventMonitor: Any?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        print("[StreamingCustomAVPlayerView] viewDidMoveToWindow - window: \(window != nil)")
+
+        if window != nil && keyEventMonitor == nil {
+            keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard let self = self, let player = self.player else {
+                    return event
+                }
+
+                // Only handle if our window is key
+                guard self.window?.isKeyWindow == true else {
+                    return event
+                }
+
+                print("[StreamingCustomAVPlayerView] Local monitor keyDown: \(event.charactersIgnoringModifiers ?? "nil")")
+
+                switch event.charactersIgnoringModifiers?.lowercased() {
+                case "l":
+                    print("[StreamingCustomAVPlayerView] L pressed - jumping forward 10s")
+                    let currentTime = player.currentTime()
+                    let newTime = CMTimeAdd(currentTime, CMTime(seconds: 10, preferredTimescale: 1))
+                    player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
+                    return nil  // Consume the event
+                case "k":
+                    print("[StreamingCustomAVPlayerView] K pressed - jumping back 10s")
+                    let currentTime = player.currentTime()
+                    let newTime = CMTimeSubtract(currentTime, CMTime(seconds: 10, preferredTimescale: 1))
+                    player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
+                    return nil  // Consume the event
+                default:
+                    return event
+                }
+            }
+            print("[StreamingCustomAVPlayerView] Installed local key event monitor")
+        } else if window == nil, let monitor = keyEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyEventMonitor = nil
+            print("[StreamingCustomAVPlayerView] Removed local key event monitor")
+        }
+    }
+
+    deinit {
+        if let monitor = keyEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            print("[StreamingCustomAVPlayerView] deinit - removed monitor")
+        }
+    }
+}
+
 struct StreamingAVPlayerViewWrapper: NSViewRepresentable {
     let player: AVPlayer?
 
-    func makeNSView(context: Context) -> AVPlayerView {
-        let view = AVPlayerView()
+    func makeNSView(context: Context) -> StreamingCustomAVPlayerView {
+        let view = StreamingCustomAVPlayerView()
         view.controlsStyle = .floating
         view.player = player
         return view
     }
 
-    func updateNSView(_ nsView: AVPlayerView, context: Context) {
+    func updateNSView(_ nsView: StreamingCustomAVPlayerView, context: Context) {
         nsView.player = player
     }
 }
