@@ -33,11 +33,19 @@ class CustomAVPlayerView: AVPlayerView {
                     let newTime = CMTimeAdd(currentTime, CMTime(seconds: 10, preferredTimescale: 1))
                     player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
                     return nil  // Consume the event
-                case "k":
-                    print("[CustomAVPlayerView] K pressed - jumping back 10s")
+                case "j":
+                    print("[CustomAVPlayerView] J pressed - jumping back 10s")
                     let currentTime = player.currentTime()
                     let newTime = CMTimeSubtract(currentTime, CMTime(seconds: 10, preferredTimescale: 1))
                     player.seek(to: newTime, toleranceBefore: .zero, toleranceAfter: .zero)
+                    return nil  // Consume the event
+                case "k":
+                    print("[CustomAVPlayerView] K pressed - toggling pause")
+                    if player.rate == 0 {
+                        player.play()
+                    } else {
+                        player.pause()
+                    }
                     return nil  // Consume the event
                 default:
                     return event
