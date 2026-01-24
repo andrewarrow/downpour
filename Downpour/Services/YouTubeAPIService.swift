@@ -45,6 +45,13 @@ struct YouTubeAPIService {
             body["params"] = params
         }
 
+        print("[DEBUG] Search API URL: \(urlString)")
+        print("[DEBUG] Search params (base64): \(params ?? "none")")
+        if let params = params, let paramsData = Data(base64Encoded: params) {
+            print("[DEBUG] Search params (hex): \(paramsData.map { String(format: "%02x", $0) }.joined(separator: " "))")
+        }
+        print("[DEBUG] Request body: \(body)")
+
         let request = try makeRequest(url: url, body: body)
         let (data, _) = try await URLSession.shared.data(for: request)
 

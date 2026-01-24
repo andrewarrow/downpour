@@ -247,9 +247,18 @@ struct APISearchView: View {
         var params: [UInt8] = []
 
         // Sort (field 1 in outer message)
+        // YouTube sort values: 1=rating, 2=uploadDate, 3=viewCount
         if sortBy != .relevance {
             params.append(0x08) // field 1, wire type 0
-            params.append(UInt8(sortBy.rawValue))
+            let youtubeSortValue: UInt8
+            switch sortBy {
+            case .relevance: youtubeSortValue = 0
+            case .uploadDate: youtubeSortValue = 2
+            case .viewCount: youtubeSortValue = 3
+            case .rating: youtubeSortValue = 1
+            }
+            params.append(youtubeSortValue)
+            print("[DEBUG] Sort filter: \(sortBy.label) -> YouTube value: \(youtubeSortValue)")
         }
 
         // Filters submessage (field 2 in outer message)
@@ -258,6 +267,10 @@ struct APISearchView: View {
             params.append(UInt8(filterBytes.count))
             params.append(contentsOf: filterBytes)
         }
+
+        print("[DEBUG] buildSearchParams - sortBy: \(sortBy.label), uploadDate: \(uploadDate.label), duration: \(duration.label)")
+        print("[DEBUG] Filter bytes: \(filterBytes.map { String(format: "%02x", $0) }.joined(separator: " "))")
+        print("[DEBUG] Full params bytes: \(params.map { String(format: "%02x", $0) }.joined(separator: " "))")
 
         guard !params.isEmpty else { return nil }
         return Data(params).base64EncodedString()
