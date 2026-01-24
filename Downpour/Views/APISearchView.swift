@@ -324,20 +324,54 @@ struct APISearchView: View {
 
         Task {
             do {
-                let channelVideos = try await getChannelVideos(channelId: channelId)
+                // Get related channels by fetching videos from similar channels
+                let relatedChannelVideos = try await getRelatedChannelVideos(channelId: channelId, channelName: result.channelName)
                 await MainActor.run {
                     navigationStack.append((title: currentTitle, results: searchResults))
-                    currentTitle = "Videos from: \(result.channelName)"
-                    searchResults = channelVideos
+                    currentTitle = "Channels like: \(result.channelName)"
+                    searchResults = relatedChannelVideos
                     isSearching = false
                 }
             } catch {
                 await MainActor.run {
-                    errorText = "Failed to fetch channel videos: \(error.localizedDescription)"
+                    errorText = "Failed to fetch related channels: \(error.localizedDescription)"
                     isSearching = false
                 }
             }
         }
+    }
+
+    private func getRelatedChannelVideos(channelId: String, channelName: String) async throws -> [SearchResult] {
+        print("[DEBUG] getRelatedChannelVideos for channel: \(channelId) (\(channelName))")
+
+        // Strategy: Get the channel's recent videos, then get related videos from those
+        // This finds channels that YouTube considers related to this one
+
+        // First, get some videos from this channel
+        let channelVideos = try await getChannelVideos(channelId: channelId)
+        print("[DEBUG] Got \(channelVideos.count) videos from channel")
+
+        guard !channelVideos.isEmpty else {
+            print("[DEBUG] No videos found on channel")
+            return []
+        }
+
+        // Use the channel's videos to find related content from OTHER channels
+        var allRelated: [SearchResult] = []
+
+        // Get related videos from up to 3 of the channel's videos for better diversity
+        let videosToCheck = Array(channelVideos.prefix(3))
+        for video in videosToCheck {
+            let related = try await getRelatedVideos(videoId: video.id, excludeChannelId: channelId)
+            allRelated.append(contentsOf: related)
+            print("[DEBUG] Got \(related.count) related videos from video: \(video.title)")
+        }
+
+        // Apply diversity filter again to ensure 1 video per channel across all results
+        let diverse = applyDiversityFilter(results: allRelated, excludeChannelId: channelId)
+        print("[DEBUG] Final diverse results: \(diverse.count) videos from different channels")
+
+        return diverse
     }
 
     private func getRelatedVideos(videoId: String, excludeChannelId: String?) async throws -> [SearchResult] {
@@ -620,19 +654,31 @@ struct APISearchView: View {
             }
         }
 
-        // Get channel ID from avatar navigation endpoint
+        // Get channel ID and channel thumbnail from avatar navigation endpoint
+        var channelThumbnailURL: String? = nil
         if let image = lockupMetadataViewModel["image"] as? [String: Any],
-           let decoratedAvatarViewModel = image["decoratedAvatarViewModel"] as? [String: Any],
-           let rendererContext = decoratedAvatarViewModel["rendererContext"] as? [String: Any],
-           let commandContext = rendererContext["commandContext"] as? [String: Any],
-           let onTap = commandContext["onTap"] as? [String: Any],
-           let innertubeCommand = onTap["innertubeCommand"] as? [String: Any],
-           let browseEndpoint = innertubeCommand["browseEndpoint"] as? [String: Any],
-           let browseId = browseEndpoint["browseId"] as? String {
-            channelId = browseId
+           let decoratedAvatarViewModel = image["decoratedAvatarViewModel"] as? [String: Any] {
+            // Get channel ID
+            if let rendererContext = decoratedAvatarViewModel["rendererContext"] as? [String: Any],
+               let commandContext = rendererContext["commandContext"] as? [String: Any],
+               let onTap = commandContext["onTap"] as? [String: Any],
+               let innertubeCommand = onTap["innertubeCommand"] as? [String: Any],
+               let browseEndpoint = innertubeCommand["browseEndpoint"] as? [String: Any],
+               let browseId = browseEndpoint["browseId"] as? String {
+                channelId = browseId
+            }
+            // Get channel thumbnail URL
+            if let avatar = decoratedAvatarViewModel["avatar"] as? [String: Any],
+               let avatarViewModel = avatar["avatarViewModel"] as? [String: Any],
+               let avatarImage = avatarViewModel["image"] as? [String: Any],
+               let sources = avatarImage["sources"] as? [[String: Any]],
+               let firstSource = sources.first,
+               let urlString = firstSource["url"] as? String {
+                channelThumbnailURL = urlString
+            }
         }
 
-        // Get thumbnail URL
+        // Get video thumbnail URL
         var thumbnailURL: URL? = nil
         if let contentImage = viewModel["contentImage"] as? [String: Any],
            let thumbnailViewModel = contentImage["thumbnailViewModel"] as? [String: Any],
@@ -648,7 +694,7 @@ struct APISearchView: View {
             title: title,
             thumbnailURL: thumbnailURL,
             channelId: channelId,
-            channelThumbnailURL: nil,
+            channelThumbnailURL: channelThumbnailURL,
             channelName: channelName,
             viewCount: viewCount,
             publishedText: nil
