@@ -39,6 +39,10 @@ struct ChannelsView: View {
                                             }
                                         }
                                     }
+                                    Divider()
+                                    Button("Delete", role: .destructive) {
+                                        deleteChannel(sub)
+                                    }
                                 }
                                 .onTapGesture {
                                     navigationPath.append(sub)
@@ -95,6 +99,19 @@ struct ChannelsView: View {
         } catch {
             print("Failed to move channel: \(error)")
             // Reload to restore state
+            loadSubscriptions()
+        }
+    }
+
+    private func deleteChannel(_ subscription: Subscription) {
+        do {
+            subscriptions.removeAll { $0.id == subscription.id }
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(subscriptions)
+            try data.write(to: subsFile)
+        } catch {
+            print("Failed to delete channel: \(error)")
             loadSubscriptions()
         }
     }
