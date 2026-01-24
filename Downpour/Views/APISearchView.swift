@@ -222,26 +222,21 @@ struct APISearchView: View {
     // MARK: - Search Actions
 
     private func buildSearchParams() -> String? {
-        var hasFilters = false
         var filterBytes: [UInt8] = []
 
         // Upload date filter (field 1 in filters submessage)
         if uploadDate != .anyTime {
             filterBytes.append(0x08) // field 1, wire type 0
             filterBytes.append(UInt8(uploadDate.rawValue))
-            hasFilters = true
         }
 
-        // Type filter (field 2 in filters submessage) - always video (1)
-        filterBytes.append(0x10) // field 2, wire type 0
-        filterBytes.append(0x01) // video type
-        hasFilters = true
+        // Note: NOT including type filter - FreeTube doesn't include it for "All Types"
+        // and including it seems to interfere with sort order
 
         // Duration filter (field 3 in filters submessage)
         if duration != .any {
             filterBytes.append(0x18) // field 3, wire type 0
             filterBytes.append(UInt8(duration.rawValue))
-            hasFilters = true
         }
 
         var params: [UInt8] = []
@@ -262,7 +257,7 @@ struct APISearchView: View {
         }
 
         // Filters submessage (field 2 in outer message)
-        if hasFilters {
+        if !filterBytes.isEmpty {
             params.append(0x12) // field 2, wire type 2 (length-delimited)
             params.append(UInt8(filterBytes.count))
             params.append(contentsOf: filterBytes)
