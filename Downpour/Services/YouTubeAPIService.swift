@@ -13,7 +13,7 @@ struct YouTubeAPIService {
         return [
             "client": [
                 "clientName": "WEB",
-                "clientVersion": "2.20240101.00.00",
+                "clientVersion": "2.20250222.10.00",
                 "hl": "en",
                 "gl": "US"
             ]

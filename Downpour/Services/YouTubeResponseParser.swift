@@ -35,6 +35,11 @@ struct YouTubeResponseParser {
             }
         }
 
+        print("[DEBUG] Search results order from API:")
+        for (index, result) in results.enumerated() {
+            print("[DEBUG]   \(index + 1). \(result.viewCount) - \(result.title.prefix(50))")
+        }
+
         return results
     }
 
