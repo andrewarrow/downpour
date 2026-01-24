@@ -19,16 +19,26 @@ struct APISearchView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Search YouTube and press Enter", text: $searchText)
-                .textFieldStyle(.plain)
-                .font(.system(size: 18))
-                .padding()
-                .background(Color(nsColor: .controlBackgroundColor))
-                .disabled(isSearching)
-                .focused($isTextFieldFocused)
-                .onSubmit {
-                    performSearch()
+            HStack(spacing: 8) {
+                TextField("Search YouTube and press Enter", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 18))
+                    .disabled(isSearching)
+                    .focused($isTextFieldFocused)
+                    .onSubmit {
+                        performSearch()
+                    }
+
+                Button(action: doRandomSearch) {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 18))
                 }
+                .buttonStyle(.plain)
+                .disabled(isSearching)
+                .help("Random Search")
+            }
+            .padding()
+            .background(Color(nsColor: .controlBackgroundColor))
 
             if !navigationStack.isEmpty {
                 HStack {
@@ -200,6 +210,20 @@ struct APISearchView: View {
         let url = "https://www.youtube.com/watch?v=\(result.id)"
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(url, forType: .string)
+    }
+
+    private func doRandomSearch() {
+        guard let wordsURL = Bundle.main.url(forResource: "words", withExtension: "txt"),
+              let wordsText = try? String(contentsOf: wordsURL, encoding: .utf8) else {
+            return
+        }
+
+        let words = wordsText.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        guard !words.isEmpty else { return }
+
+        let randomWord = words.randomElement()!
+        searchText = randomWord
+        performSearch()
     }
 
     private func addChannelToCategory(_ result: SearchResult, to targetFile: URL) {
