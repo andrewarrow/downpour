@@ -22,6 +22,8 @@ class StreamingResourceLoader: NSObject, AVAssetResourceLoaderDelegate, URLSessi
     private var isFinished = false
     private let queue = DispatchQueue(label: "StreamingResourceLoader")
 
+    var onProgressUpdate: ((Double, Int64, Int64) -> Void)?  // (progress 0-1, downloaded, total)
+
     init(actualURL: URL, saveURL: URL) {
         self.actualURL = actualURL
         self.saveURL = saveURL
@@ -74,6 +76,12 @@ class StreamingResourceLoader: NSObject, AVAssetResourceLoaderDelegate, URLSessi
         downloadedData.append(data)
         fileHandle?.write(data)
         processPendingRequests()
+
+        // Report progress
+        if contentLength > 0 {
+            let progress = Double(downloadedData.count) / Double(contentLength)
+            onProgressUpdate?(progress, Int64(downloadedData.count), contentLength)
+        }
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -162,6 +170,9 @@ struct StreamingVideoView: View {
     @State private var isLoading = true
     @State private var errorText: String?
     @State private var resourceLoader: StreamingResourceLoader?
+    @State private var bufferProgress: Double = 0
+    @State private var downloadedBytes: Int64 = 0
+    @State private var totalBytes: Int64 = 0
 
     var body: some View {
         ZStack {
@@ -180,6 +191,29 @@ struct StreamingVideoView: View {
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                }
+            }
+
+            // Buffer progress bar overlay
+            if !isLoading && player != nil && bufferProgress < 1.0 {
+                VStack {
+                    Spacer()
+                    HStack {
+                        ProgressView(value: bufferProgress, total: 1.0)
+                            .progressViewStyle(.linear)
+                            .tint(.blue)
+                        Text("\(Int(bufferProgress * 100))%")
+                            .font(.caption)
+                            .monospacedDigit()
+                        Text(formatBytes(downloadedBytes) + " / " + formatBytes(totalBytes))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(8)
+                    .padding()
                 }
             }
         }
@@ -224,6 +258,11 @@ struct StreamingVideoView: View {
 
         // Setup resource loader
         let loader = StreamingResourceLoader(actualURL: streamURL, saveURL: saveURL)
+        loader.onProgressUpdate = { progress, downloaded, total in
+            self.bufferProgress = progress
+            self.downloadedBytes = downloaded
+            self.totalBytes = total
+        }
         resourceLoader = loader
 
         // Create asset with custom scheme
@@ -290,5 +329,11 @@ struct StreamingVideoView: View {
 
         print("[DEBUG] Got stream URL: \(streamURL.absoluteString.prefix(100))...")
         return streamURL
+    }
+
+    private func formatBytes(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
     }
 }
