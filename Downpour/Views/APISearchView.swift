@@ -4,8 +4,11 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct APISearchView: View {
+    let allSubsFiles: [URL]
+
     @State private var searchText: String = ""
     @State private var searchResults: [SearchResult] = []
     @State private var isSearching: Bool = false
@@ -41,6 +44,18 @@ struct APISearchView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 200))], spacing: 16) {
                     ForEach(searchResults) { result in
                         SearchResultCell(result: result)
+                            .contextMenu {
+                                Button("Copy YouTube URL") {
+                                    copyVideoURL(result)
+                                }
+                                Menu("Add to") {
+                                    ForEach(allSubsFiles, id: \.self) { targetFile in
+                                        Button(targetFile.deletingPathExtension().lastPathComponent) {
+                                            addChannelToCategory(result, to: targetFile)
+                                        }
+                                    }
+                                }
+                            }
                     }
                 }
                 .padding()
@@ -170,13 +185,29 @@ struct APISearchView: View {
         }
 
         let channelName: String
+        var channelId: String? = nil
         if let channelObj = renderer["ownerText"] as? [String: Any],
            let runs = channelObj["runs"] as? [[String: Any]],
            let firstRun = runs.first,
            let text = firstRun["text"] as? String {
             channelName = text
+            if let navEndpoint = firstRun["navigationEndpoint"] as? [String: Any],
+               let browseEndpoint = navEndpoint["browseEndpoint"] as? [String: Any],
+               let browseId = browseEndpoint["browseId"] as? String {
+                channelId = browseId
+            }
         } else {
             channelName = ""
+        }
+
+        var channelThumbnailURL: String? = nil
+        if let channelThumbnailRenderer = renderer["channelThumbnailSupportedRenderers"] as? [String: Any],
+           let channelThumbnailWithLink = channelThumbnailRenderer["channelThumbnailWithLinkRenderer"] as? [String: Any],
+           let thumbnail = channelThumbnailWithLink["thumbnail"] as? [String: Any],
+           let thumbnails = thumbnail["thumbnails"] as? [[String: Any]],
+           let firstThumb = thumbnails.first,
+           let urlString = firstThumb["url"] as? String {
+            channelThumbnailURL = urlString
         }
 
         let viewCount: String
@@ -199,9 +230,76 @@ struct APISearchView: View {
             id: videoId,
             title: title,
             thumbnailURL: thumbnailURL,
+            channelId: channelId,
+            channelThumbnailURL: channelThumbnailURL,
             channelName: channelName,
             viewCount: viewCount,
             publishedText: publishedText
         )
+    }
+
+    private func copyVideoURL(_ result: SearchResult) {
+        let url = "https://www.youtube.com/watch?v=\(result.id)"
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(url, forType: .string)
+    }
+
+    private func addChannelToCategory(_ result: SearchResult, to targetFile: URL) {
+        print("[DEBUG] addChannelToCategory called")
+        print("[DEBUG] result.channelId: \(String(describing: result.channelId))")
+        print("[DEBUG] result.channelName: \(result.channelName)")
+        print("[DEBUG] result.channelThumbnailURL: \(String(describing: result.channelThumbnailURL))")
+        print("[DEBUG] targetFile: \(targetFile.path)")
+
+        guard let channelId = result.channelId else {
+            print("[DEBUG] ERROR: channelId is nil, returning early")
+            return
+        }
+
+        do {
+            var subscriptions: [Subscription] = []
+            if let data = try? Data(contentsOf: targetFile) {
+                print("[DEBUG] Read \(data.count) bytes from file")
+                if let decoded = try? JSONDecoder().decode([Subscription].self, from: data) {
+                    subscriptions = decoded
+                    print("[DEBUG] Decoded \(subscriptions.count) existing subscriptions")
+                } else {
+                    print("[DEBUG] ERROR: Failed to decode existing subscriptions")
+                }
+            } else {
+                print("[DEBUG] No existing file or failed to read")
+            }
+
+            // Check if channel already exists
+            if subscriptions.contains(where: { $0.id == channelId }) {
+                print("[DEBUG] Channel already exists, returning early")
+                return
+            }
+
+            // Create new subscription from search result
+            let thumbnailURL = result.channelThumbnailURL ?? ""
+            let newSubscription = Subscription(
+                snippet: SubscriptionSnippet(
+                    channelId: channelId,
+                    title: result.channelName,
+                    resourceId: ResourceId(channelId: channelId),
+                    thumbnails: Thumbnails(default: ThumbnailInfo(url: thumbnailURL))
+                )
+            )
+            print("[DEBUG] Created new subscription with id: \(newSubscription.id), thumbnailURL: \(thumbnailURL)")
+
+            subscriptions.append(newSubscription)
+            print("[DEBUG] Total subscriptions after append: \(subscriptions.count)")
+
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(subscriptions)
+            print("[DEBUG] Encoded data size: \(data.count) bytes")
+
+            try data.write(to: targetFile)
+            print("[DEBUG] Successfully wrote to file: \(targetFile.path)")
+        } catch {
+            print("[DEBUG] ERROR: Failed to add channel to category: \(error)")
+        }
     }
 }

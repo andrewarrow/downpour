@@ -338,6 +338,8 @@ struct ChannelVideosView: View {
             id: videoId,
             title: title,
             thumbnailURL: thumbnailURL,
+            channelId: subscription.id,
+            channelThumbnailURL: subscription.snippet.thumbnails.default.url,
             channelName: channelName,
             viewCount: viewCount,
             publishedText: publishedText

@@ -214,18 +214,39 @@ struct SubsView: View {
         }
 
         let channelName: String
+        var channelId: String? = nil
         if let channelObj = renderer["ownerText"] as? [String: Any],
            let runs = channelObj["runs"] as? [[String: Any]],
            let firstRun = runs.first,
            let text = firstRun["text"] as? String {
             channelName = text
+            if let navEndpoint = firstRun["navigationEndpoint"] as? [String: Any],
+               let browseEndpoint = navEndpoint["browseEndpoint"] as? [String: Any],
+               let browseId = browseEndpoint["browseId"] as? String {
+                channelId = browseId
+            }
         } else if let shortByline = renderer["shortBylineText"] as? [String: Any],
                   let runs = shortByline["runs"] as? [[String: Any]],
                   let firstRun = runs.first,
                   let text = firstRun["text"] as? String {
             channelName = text
+            if let navEndpoint = firstRun["navigationEndpoint"] as? [String: Any],
+               let browseEndpoint = navEndpoint["browseEndpoint"] as? [String: Any],
+               let browseId = browseEndpoint["browseId"] as? String {
+                channelId = browseId
+            }
         } else {
             channelName = ""
+        }
+
+        var channelThumbnailURL: String? = nil
+        if let channelThumbnailRenderer = renderer["channelThumbnailSupportedRenderers"] as? [String: Any],
+           let channelThumbnailWithLink = channelThumbnailRenderer["channelThumbnailWithLinkRenderer"] as? [String: Any],
+           let thumbnail = channelThumbnailWithLink["thumbnail"] as? [String: Any],
+           let thumbnails = thumbnail["thumbnails"] as? [[String: Any]],
+           let firstThumb = thumbnails.first,
+           let urlString = firstThumb["url"] as? String {
+            channelThumbnailURL = urlString
         }
 
         let viewCount: String
@@ -251,6 +272,8 @@ struct SubsView: View {
             id: videoId,
             title: title,
             thumbnailURL: thumbnailURL,
+            channelId: channelId,
+            channelThumbnailURL: channelThumbnailURL,
             channelName: channelName,
             viewCount: viewCount,
             publishedText: publishedText

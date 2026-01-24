@@ -74,7 +74,7 @@ struct ContentView: View {
                 if selectedTab == 0 {
                     YtDlpView()
                 } else if selectedTab == 1 {
-                    APISearchView()
+                    APISearchView(allSubsFiles: subsFiles)
                 } else if selectedTab == 2 {
                     if let subsFile = selectedSubsFile {
                         SubsView(subsFile: subsFile)

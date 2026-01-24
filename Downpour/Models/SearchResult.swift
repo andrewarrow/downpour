@@ -9,6 +9,8 @@ struct SearchResult: Identifiable, Codable {
     let id: String
     let title: String
     let thumbnailURL: URL?
+    let channelId: String?
+    let channelThumbnailURL: String?
     let channelName: String
     let viewCount: String
     let publishedText: String?
