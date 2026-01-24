@@ -30,6 +30,7 @@ struct VideoPlayerView: View {
             .onAppear {
                 player = AVPlayer(url: videoURL)
                 player?.play()
+                player?.rate = 2.0
             }
             .onDisappear {
                 player?.pause()

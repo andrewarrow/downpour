@@ -235,6 +235,7 @@ struct StreamingVideoView: View {
         let playerItem = AVPlayerItem(asset: asset)
         player = AVPlayer(playerItem: playerItem)
         player?.play()
+        player?.rate = 2.0
         isLoading = false
 
         print("[StreamingVideoView] Streaming and saving to: \(saveURL.path)")
