@@ -48,10 +48,12 @@ enum VTTParser {
                                 i -= 1
                                 break
                             }
-                            // Strip VTT tags like <c>, </c>, <00:00:00.000>
-                            let cleanedLine = textLine
-                                .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-                                .trimmingCharacters(in: .whitespaces)
+                            // Strip VTT tags like <c>, </c>, <00:00:00.000> and decode HTML entities
+                            let cleanedLine = decodeHTMLEntities(
+                                textLine
+                                    .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                                    .trimmingCharacters(in: .whitespaces)
+                            )
                             if !cleanedLine.isEmpty {
                                 textLines.append(cleanedLine)
                             }
@@ -69,6 +71,59 @@ enum VTTParser {
         }
 
         return cues
+    }
+
+    private static func decodeHTMLEntities(_ string: String) -> String {
+        var result = string
+        // Named entities
+        let namedEntities: [String: String] = [
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": "\"",
+            "&apos;": "'",
+            "&nbsp;": " ",
+            "&lrm;": "\u{200E}",
+            "&rlm;": "\u{200F}",
+            "&shy;": "\u{00AD}",
+            "&ndash;": "–",
+            "&mdash;": "—",
+            "&hellip;": "…",
+            "&lsquo;": "'",
+            "&rsquo;": "'",
+            "&ldquo;": """,
+            "&rdquo;": """,
+        ]
+        for (entity, char) in namedEntities {
+            result = result.replacingOccurrences(of: entity, with: char)
+        }
+        // Numeric entities (decimal): &#123;
+        if let regex = try? NSRegularExpression(pattern: "&#(\\d+);", options: []) {
+            let range = NSRange(result.startIndex..., in: result)
+            let matches = regex.matches(in: result, options: [], range: range).reversed()
+            for match in matches {
+                if let codeRange = Range(match.range(at: 1), in: result),
+                   let codePoint = UInt32(result[codeRange]),
+                   let scalar = Unicode.Scalar(codePoint) {
+                    let fullRange = Range(match.range, in: result)!
+                    result.replaceSubrange(fullRange, with: String(Character(scalar)))
+                }
+            }
+        }
+        // Numeric entities (hex): &#x1F600;
+        if let regex = try? NSRegularExpression(pattern: "&#[xX]([0-9a-fA-F]+);", options: []) {
+            let range = NSRange(result.startIndex..., in: result)
+            let matches = regex.matches(in: result, options: [], range: range).reversed()
+            for match in matches {
+                if let codeRange = Range(match.range(at: 1), in: result),
+                   let codePoint = UInt32(result[codeRange], radix: 16),
+                   let scalar = Unicode.Scalar(codePoint) {
+                    let fullRange = Range(match.range, in: result)!
+                    result.replaceSubrange(fullRange, with: String(Character(scalar)))
+                }
+            }
+        }
+        return result
     }
 
     private static func parseTimestamp(_ str: String) -> TimeInterval? {
