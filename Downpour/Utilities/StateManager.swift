@@ -8,6 +8,9 @@ import Foundation
 struct AppState: Codable {
     var selectedTab: Int
     var selectedSubsFile: String?
+    var searchSortBy: Int?
+    var searchUploadDate: Int?
+    var searchDuration: Int?
 }
 
 enum StateManager {
@@ -38,6 +41,14 @@ enum StateManager {
     static func saveSelectedSubsFile(_ filename: String?) {
         var state = load()
         state.selectedSubsFile = filename
+        save(state)
+    }
+
+    static func saveSearchFilters(sortBy: Int, uploadDate: Int, duration: Int) {
+        var state = load()
+        state.searchSortBy = sortBy
+        state.searchUploadDate = uploadDate
+        state.searchDuration = duration
         save(state)
     }
 }

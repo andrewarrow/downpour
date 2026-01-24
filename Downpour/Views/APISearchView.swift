@@ -71,6 +71,7 @@ struct APISearchView: View {
     @State private var sortBy: SearchSort = .relevance
     @State private var uploadDate: SearchUploadDate = .anyTime
     @State private var duration: SearchDuration = .any
+    @State private var didLoadState = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -192,10 +193,30 @@ struct APISearchView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
+            if !didLoadState {
+                let state = StateManager.load()
+                if let sort = state.searchSortBy, let s = SearchSort(rawValue: sort) {
+                    sortBy = s
+                }
+                if let date = state.searchUploadDate, let d = SearchUploadDate(rawValue: date) {
+                    uploadDate = d
+                }
+                if let dur = state.searchDuration, let d = SearchDuration(rawValue: dur) {
+                    duration = d
+                }
+                didLoadState = true
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isTextFieldFocused = true
             }
         }
+        .onChange(of: sortBy) { _, _ in saveFilters() }
+        .onChange(of: uploadDate) { _, _ in saveFilters() }
+        .onChange(of: duration) { _, _ in saveFilters() }
+    }
+
+    private func saveFilters() {
+        StateManager.saveSearchFilters(sortBy: sortBy.rawValue, uploadDate: uploadDate.rawValue, duration: duration.rawValue)
     }
 
     // MARK: - Search Actions
