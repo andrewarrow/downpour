@@ -116,11 +116,24 @@ struct ContentView: View {
         } message: {
             Text("Enter a name for the new category:")
         }
+        .onChange(of: selectedTab) { _, newValue in
+            StateManager.saveSelectedTab(newValue)
+        }
+        .onChange(of: selectedSubsFile) { _, newValue in
+            StateManager.saveSelectedSubsFile(newValue?.lastPathComponent)
+        }
     }
 
     private func loadSubsFiles() {
         subsFiles = Paths.getSubsFiles()
-        if selectedSubsFile == nil, let first = subsFiles.first {
+
+        let savedState = StateManager.load()
+        selectedTab = savedState.selectedTab
+
+        if let savedFilename = savedState.selectedSubsFile,
+           let matchingFile = subsFiles.first(where: { $0.lastPathComponent == savedFilename }) {
+            selectedSubsFile = matchingFile
+        } else if let first = subsFiles.first {
             selectedSubsFile = first
         }
     }
