@@ -200,8 +200,10 @@ struct StreamingVideoView: View {
                 await MainActor.run {
                     setupPlayerWithResourceLoader(streamURL: streamURL)
                 }
-                // Download thumbnail in the background
-                await ThumbnailDownloader.download(videoId: videoId)
+                // Download thumbnail and subtitles in the background
+                async let thumbnailTask: () = ThumbnailDownloader.download(videoId: videoId)
+                async let subtitleTask: () = SubtitleDownloader.download(videoId: videoId)
+                _ = await (thumbnailTask, subtitleTask)
             } catch {
                 await MainActor.run {
                     errorText = error.localizedDescription
