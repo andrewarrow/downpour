@@ -29,17 +29,21 @@ struct YouTubeAPIService {
         return request
     }
 
-    static func searchYouTube(query: String) async throws -> [SearchResult] {
+    static func searchYouTube(query: String, params: String? = nil) async throws -> [SearchResult] {
         let urlString = "https://www.youtube.com/youtubei/v1/search?key=\(apiKey)"
 
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
 
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "context": makeClientContext(),
             "query": query
         ]
+
+        if let params = params {
+            body["params"] = params
+        }
 
         let request = try makeRequest(url: url, body: body)
         let (data, _) = try await URLSession.shared.data(for: request)

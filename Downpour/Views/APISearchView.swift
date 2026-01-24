@@ -6,6 +6,58 @@
 import SwiftUI
 import AppKit
 
+enum SearchSort: Int, CaseIterable {
+    case relevance = 0
+    case uploadDate = 1
+    case viewCount = 2
+    case rating = 3
+
+    var label: String {
+        switch self {
+        case .relevance: return "Relevance"
+        case .uploadDate: return "Upload Date"
+        case .viewCount: return "View Count"
+        case .rating: return "Rating"
+        }
+    }
+}
+
+enum SearchUploadDate: Int, CaseIterable {
+    case anyTime = 0
+    case lastHour = 1
+    case today = 2
+    case thisWeek = 3
+    case thisMonth = 4
+    case thisYear = 5
+
+    var label: String {
+        switch self {
+        case .anyTime: return "Any Time"
+        case .lastHour: return "Last Hour"
+        case .today: return "Today"
+        case .thisWeek: return "This Week"
+        case .thisMonth: return "This Month"
+        case .thisYear: return "This Year"
+        }
+    }
+}
+
+enum SearchDuration: Int, CaseIterable {
+    case any = 0
+    case short = 1
+    case medium = 2
+    case long = 3
+
+    var label: String {
+        switch self {
+        case .any: return "Any"
+        case .short: return "< 4 min"
+        case .medium: return "4-20 min"
+        case .long: return "> 20 min"
+        }
+    }
+}
+
 struct APISearchView: View {
     let allSubsFiles: [URL]
 
@@ -16,6 +68,9 @@ struct APISearchView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var navigationStack: [(title: String, results: [SearchResult])] = []
     @State private var currentTitle: String = ""
+    @State private var sortBy: SearchSort = .relevance
+    @State private var uploadDate: SearchUploadDate = .anyTime
+    @State private var duration: SearchDuration = .any
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,6 +83,27 @@ struct APISearchView: View {
                     .onSubmit {
                         performSearch()
                     }
+
+                Picker("", selection: $sortBy) {
+                    ForEach(SearchSort.allCases, id: \.self) { sort in
+                        Text(sort.label).tag(sort)
+                    }
+                }
+                .frame(width: 110)
+
+                Picker("", selection: $uploadDate) {
+                    ForEach(SearchUploadDate.allCases, id: \.self) { date in
+                        Text(date.label).tag(date)
+                    }
+                }
+                .frame(width: 100)
+
+                Picker("", selection: $duration) {
+                    ForEach(SearchDuration.allCases, id: \.self) { dur in
+                        Text(dur.label).tag(dur)
+                    }
+                }
+                .frame(width: 90)
 
                 Button(action: doRandomSearch) {
                     Image(systemName: "questionmark.circle")
@@ -124,6 +200,48 @@ struct APISearchView: View {
 
     // MARK: - Search Actions
 
+    private func buildSearchParams() -> String? {
+        var hasFilters = false
+        var filterBytes: [UInt8] = []
+
+        // Upload date filter (field 1 in filters submessage)
+        if uploadDate != .anyTime {
+            filterBytes.append(0x08) // field 1, wire type 0
+            filterBytes.append(UInt8(uploadDate.rawValue))
+            hasFilters = true
+        }
+
+        // Type filter (field 2 in filters submessage) - always video (1)
+        filterBytes.append(0x10) // field 2, wire type 0
+        filterBytes.append(0x01) // video type
+        hasFilters = true
+
+        // Duration filter (field 3 in filters submessage)
+        if duration != .any {
+            filterBytes.append(0x18) // field 3, wire type 0
+            filterBytes.append(UInt8(duration.rawValue))
+            hasFilters = true
+        }
+
+        var params: [UInt8] = []
+
+        // Sort (field 1 in outer message)
+        if sortBy != .relevance {
+            params.append(0x08) // field 1, wire type 0
+            params.append(UInt8(sortBy.rawValue))
+        }
+
+        // Filters submessage (field 2 in outer message)
+        if hasFilters {
+            params.append(0x12) // field 2, wire type 2 (length-delimited)
+            params.append(UInt8(filterBytes.count))
+            params.append(contentsOf: filterBytes)
+        }
+
+        guard !params.isEmpty else { return nil }
+        return Data(params).base64EncodedString()
+    }
+
     private func performSearch() {
         guard !searchText.isEmpty else { return }
 
@@ -133,9 +251,11 @@ struct APISearchView: View {
         navigationStack = []
         currentTitle = ""
 
+        let params = buildSearchParams()
+
         Task {
             do {
-                let results = try await YouTubeAPIService.searchYouTube(query: searchText)
+                let results = try await YouTubeAPIService.searchYouTube(query: searchText, params: params)
                 await MainActor.run {
                     searchResults = results
                     isSearching = false
