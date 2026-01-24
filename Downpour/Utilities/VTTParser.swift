@@ -89,10 +89,10 @@ enum VTTParser {
             "&ndash;": "–",
             "&mdash;": "—",
             "&hellip;": "…",
-            "&lsquo;": "'",
-            "&rsquo;": "'",
-            "&ldquo;": """,
-            "&rdquo;": """,
+            "&lsquo;": "\u{2018}",
+            "&rsquo;": "\u{2019}",
+            "&ldquo;": "\u{201C}",
+            "&rdquo;": "\u{201D}",
         ]
         for (entity, char) in namedEntities {
             result = result.replacingOccurrences(of: entity, with: char)
