@@ -11,6 +11,7 @@ struct AppState: Codable {
     var searchSortBy: Int?
     var searchUploadDate: Int?
     var searchDuration: Int?
+    var videoPlaybackPositions: [String: Double]?
 }
 
 enum StateManager {
@@ -49,6 +50,26 @@ enum StateManager {
         state.searchSortBy = sortBy
         state.searchUploadDate = uploadDate
         state.searchDuration = duration
+        save(state)
+    }
+
+    static func saveVideoPlaybackPosition(videoId: String, position: Double) {
+        var state = load()
+        if state.videoPlaybackPositions == nil {
+            state.videoPlaybackPositions = [:]
+        }
+        state.videoPlaybackPositions?[videoId] = position
+        save(state)
+    }
+
+    static func getVideoPlaybackPosition(videoId: String) -> Double? {
+        let state = load()
+        return state.videoPlaybackPositions?[videoId]
+    }
+
+    static func removeVideoPlaybackPosition(videoId: String) {
+        var state = load()
+        state.videoPlaybackPositions?[videoId] = nil
         save(state)
     }
 }

@@ -116,6 +116,13 @@ struct VideoPlayerView: View {
             setupPlayer()
         }
         .onDisappear {
+            // Save current playback position
+            if let currentTime = player?.currentTime() {
+                let position = CMTimeGetSeconds(currentTime)
+                if position > 0 {
+                    StateManager.saveVideoPlaybackPosition(videoId: videoId, position: position)
+                }
+            }
             if let observer = timeObserver {
                 player?.removeTimeObserver(observer)
             }
@@ -134,21 +141,31 @@ struct VideoPlayerView: View {
     private func setupPlayer() {
         player = AVPlayer(url: videoURL)
 
-        // Seek to initial time if provided
+        // Determine seek time: prioritize initialSeekTime, then saved position
+        let seekTime: Double
         if initialSeekTime > 0 {
-            let seekTime = CMTime(seconds: initialSeekTime, preferredTimescale: 1000)
-            player?.seek(to: seekTime, toleranceBefore: .zero, toleranceAfter: .zero)
-            print("[VideoPlayerView] Seeking to initial time: \(initialSeekTime)s")
+            seekTime = initialSeekTime
+            print("[VideoPlayerView] Using initial seek time: \(seekTime)s")
+        } else if let savedPosition = StateManager.getVideoPlaybackPosition(videoId: videoId) {
+            seekTime = savedPosition
+            print("[VideoPlayerView] Resuming from saved position: \(seekTime)s")
+        } else {
+            seekTime = 0
+        }
+
+        if seekTime > 0 {
+            let cmTime = CMTime(seconds: seekTime, preferredTimescale: 1000)
+            player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
         }
 
         player?.play()
         player?.rate = 2.0
 
-        // Add time observer for subtitles
-        if !subtitleCues.isEmpty {
-            let interval = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-            timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
-                let currentTime = CMTimeGetSeconds(time)
+        // Add time observer for subtitles and periodic position saving
+        let interval = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [self] time in
+            let currentTime = CMTimeGetSeconds(time)
+            if !subtitleCues.isEmpty {
                 updateSubtitle(for: currentTime)
             }
         }
