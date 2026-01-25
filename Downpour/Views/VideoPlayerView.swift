@@ -5,6 +5,7 @@
 
 import SwiftUI
 import AVKit
+import AVFoundation
 
 class CustomAVPlayerView: AVPlayerView {
     var keyEventMonitor: Any?
@@ -84,6 +85,7 @@ struct AVPlayerViewWrapper: NSViewRepresentable {
 
 struct VideoPlayerView: View {
     let videoURL: URL
+    var initialSeekTime: Double = 0
     @State private var player: AVPlayer?
     @State private var subtitleCues: [SubtitleCue] = []
     @State private var currentSubtitle: String = ""
@@ -131,6 +133,14 @@ struct VideoPlayerView: View {
 
     private func setupPlayer() {
         player = AVPlayer(url: videoURL)
+
+        // Seek to initial time if provided
+        if initialSeekTime > 0 {
+            let seekTime = CMTime(seconds: initialSeekTime, preferredTimescale: 1000)
+            player?.seek(to: seekTime, toleranceBefore: .zero, toleranceAfter: .zero)
+            print("[VideoPlayerView] Seeking to initial time: \(initialSeekTime)s")
+        }
+
         player?.play()
         player?.rate = 2.0
 

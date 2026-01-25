@@ -23,6 +23,7 @@ class StreamingResourceLoader: NSObject, AVAssetResourceLoaderDelegate, URLSessi
     private let queue = DispatchQueue(label: "StreamingResourceLoader")
 
     var onProgressUpdate: ((Double, Int64, Int64) -> Void)?  // (progress 0-1, downloaded, total)
+    var onDownloadComplete: (() -> Void)?
 
     init(actualURL: URL, saveURL: URL) {
         self.actualURL = actualURL
@@ -97,6 +98,7 @@ class StreamingResourceLoader: NSObject, AVAssetResourceLoaderDelegate, URLSessi
         } else {
             print("[StreamingResourceLoader] Download complete. Total: \(downloadedData.count) bytes")
             processPendingRequests()
+            onDownloadComplete?()
         }
     }
 
@@ -234,47 +236,59 @@ struct StreamingVideoView: View {
     @State private var bufferProgress: Double = 0
     @State private var downloadedBytes: Int64 = 0
     @State private var totalBytes: Int64 = 0
+    @State private var videoDownloadComplete = false
+    @State private var subtitlesDownloadComplete = false
+    @State private var switchedToLocalPlayer = false
+    @State private var resumeTime: Double = 0
+
+    private var localVideoURL: URL {
+        Paths.dataDirectory.appendingPathComponent("\(videoId).mp4")
+    }
 
     var body: some View {
         ZStack {
-            if let player = player {
-                StreamingAVPlayerViewWrapper(player: player)
-            }
-
-            if isLoading {
-                ProgressView("Loading stream...")
-            }
-
-            if let error = errorText {
-                VStack {
-                    Text("Failed to load video")
-                        .font(.headline)
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            if switchedToLocalPlayer {
+                VideoPlayerView(videoURL: localVideoURL, initialSeekTime: resumeTime)
+            } else {
+                if let player = player {
+                    StreamingAVPlayerViewWrapper(player: player)
                 }
-            }
 
-            // Buffer progress bar overlay
-            if !isLoading && player != nil && bufferProgress < 1.0 {
-                VStack {
-                    Spacer()
-                    HStack {
-                        ProgressView(value: bufferProgress, total: 1.0)
-                            .progressViewStyle(.linear)
-                            .tint(.blue)
-                        Text("\(Int(bufferProgress * 100))%")
-                            .font(.caption)
-                            .monospacedDigit()
-                        Text(formatBytes(downloadedBytes) + " / " + formatBytes(totalBytes))
+                if isLoading {
+                    ProgressView("Loading stream...")
+                }
+
+                if let error = errorText {
+                    VStack {
+                        Text("Failed to load video")
+                            .font(.headline)
+                        Text(error)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .padding()
+                }
+
+                // Buffer progress bar overlay
+                if !isLoading && player != nil && bufferProgress < 1.0 {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            ProgressView(value: bufferProgress, total: 1.0)
+                                .progressViewStyle(.linear)
+                                .tint(.blue)
+                            Text("\(Int(bufferProgress * 100))%")
+                                .font(.caption)
+                                .monospacedDigit()
+                            Text(formatBytes(downloadedBytes) + " / " + formatBytes(totalBytes))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                        .padding()
+                    }
                 }
             }
         }
@@ -283,8 +297,10 @@ struct StreamingVideoView: View {
             loadStream()
         }
         .onDisappear {
-            player?.pause()
-            resourceLoader?.cancel()
+            if !switchedToLocalPlayer {
+                player?.pause()
+                resourceLoader?.cancel()
+            }
         }
     }
 
@@ -295,10 +311,18 @@ struct StreamingVideoView: View {
                 await MainActor.run {
                     setupPlayerWithResourceLoader(streamURL: streamURL)
                 }
-                // Download thumbnail and subtitles in the background
-                async let thumbnailTask: () = ThumbnailDownloader.download(videoId: videoId)
-                async let subtitleTask: () = SubtitleDownloader.download(videoId: videoId)
-                _ = await (thumbnailTask, subtitleTask)
+                // Download thumbnail in the background
+                Task {
+                    await ThumbnailDownloader.download(videoId: videoId)
+                }
+                // Download subtitles and track completion
+                Task {
+                    await SubtitleDownloader.download(videoId: videoId)
+                    await MainActor.run {
+                        subtitlesDownloadComplete = true
+                        checkAndSwitchToLocalPlayer()
+                    }
+                }
             } catch {
                 await MainActor.run {
                     errorText = error.localizedDescription
@@ -306,6 +330,27 @@ struct StreamingVideoView: View {
                 }
             }
         }
+    }
+
+    private func checkAndSwitchToLocalPlayer() {
+        guard videoDownloadComplete && subtitlesDownloadComplete && !switchedToLocalPlayer else { return }
+        guard let player = player else { return }
+
+        // Get current playback time
+        let currentTime = player.currentTime()
+        resumeTime = CMTimeGetSeconds(currentTime)
+
+        // Pause streaming player
+        player.pause()
+
+        // Clean up resource loader
+        resourceLoader?.cancel()
+        resourceLoader = nil
+
+        print("[StreamingVideoView] Switching to local player at \(resumeTime)s")
+
+        // Switch to local player
+        switchedToLocalPlayer = true
     }
 
     private func setupPlayerWithResourceLoader(streamURL: URL) {
@@ -323,6 +368,10 @@ struct StreamingVideoView: View {
             self.bufferProgress = progress
             self.downloadedBytes = downloaded
             self.totalBytes = total
+        }
+        loader.onDownloadComplete = {
+            self.videoDownloadComplete = true
+            self.checkAndSwitchToLocalPlayer()
         }
         resourceLoader = loader
 
