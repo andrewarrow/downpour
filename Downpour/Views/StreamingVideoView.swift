@@ -240,6 +240,7 @@ struct StreamingVideoView: View {
     @State private var subtitlesDownloadComplete = false
     @State private var switchedToLocalPlayer = false
     @State private var resumeTime: Double = 0
+    @State private var useLocalPlayer = false
 
     private var localVideoURL: URL {
         Paths.dataDirectory.appendingPathComponent("\(videoId).mp4")
@@ -247,7 +248,9 @@ struct StreamingVideoView: View {
 
     var body: some View {
         ZStack {
-            if switchedToLocalPlayer {
+            if useLocalPlayer {
+                VideoPlayerView(videoURL: localVideoURL)
+            } else if switchedToLocalPlayer {
                 VideoPlayerView(videoURL: localVideoURL, initialSeekTime: resumeTime)
             } else {
                 if let player = player {
@@ -294,10 +297,16 @@ struct StreamingVideoView: View {
         }
         .navigationTitle(title)
         .onAppear {
-            loadStream()
+            // Check if video already exists on disk
+            if FileManager.default.fileExists(atPath: localVideoURL.path) {
+                print("[StreamingVideoView] Video already exists on disk, using local player")
+                useLocalPlayer = true
+            } else {
+                loadStream()
+            }
         }
         .onDisappear {
-            if !switchedToLocalPlayer {
+            if !switchedToLocalPlayer && !useLocalPlayer {
                 player?.pause()
                 resourceLoader?.cancel()
             }
