@@ -48,6 +48,20 @@ struct SubsView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 200))], spacing: 16) {
                     ForEach(videos) { video in
                         SearchResultCell(result: video)
+                            .contextMenu {
+                                Button("Copy Youtube Video Link") {
+                                    let urlString = "https://www.youtube.com/watch?v=\(video.id)"
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(urlString, forType: .string)
+                                }
+                                if let channelId = video.channelId {
+                                    Button("Copy Youtube Channel Link") {
+                                        let urlString = "https://www.youtube.com/channel/\(channelId)"
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.setString(urlString, forType: .string)
+                                    }
+                                }
+                            }
                     }
                 }
                 .padding()
