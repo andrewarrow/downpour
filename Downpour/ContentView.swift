@@ -33,8 +33,11 @@ struct ContentView: View {
                     TabButton(title: "channels", isSelected: selectedTab == 3) {
                         selectedTab = 3
                     }
-                    TabButton(title: "YouTube API v3", isSelected: selectedTab == 4) {
+                    TabButton(title: "v3-list", isSelected: selectedTab == 4) {
                         selectedTab = 4
+                    }
+                    TabButton(title: "v3-search", isSelected: selectedTab == 5) {
+                        selectedTab = 5
                     }
                     Spacer()
                     Menu {
@@ -90,6 +93,8 @@ struct ContentView: View {
                     }
                 } else if selectedTab == 4 {
                     YouTubeAPIView()
+                } else if selectedTab == 5 {
+                    YouTubeSearchAPIView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
