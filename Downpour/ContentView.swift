@@ -33,6 +33,9 @@ struct ContentView: View {
                     TabButton(title: "channels", isSelected: selectedTab == 3) {
                         selectedTab = 3
                     }
+                    TabButton(title: "YouTube API v3", isSelected: selectedTab == 4) {
+                        selectedTab = 4
+                    }
                     Spacer()
                     Menu {
                         ForEach(subsFiles, id: \.self) { file in
@@ -80,11 +83,13 @@ struct ContentView: View {
                         SubsView(subsFile: subsFile)
                             .id(subsFile)
                     }
-                } else {
+                } else if selectedTab == 3 {
                     if let subsFile = selectedSubsFile {
                         ChannelsView(subsFile: subsFile, allSubsFiles: subsFiles)
                             .id(subsFile)
                     }
+                } else if selectedTab == 4 {
+                    YouTubeAPIView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

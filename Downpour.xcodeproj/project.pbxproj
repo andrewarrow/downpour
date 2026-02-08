@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		000BE0FA2F225A9900BD3DBE /* Downpour.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Downpour.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000BE1082F225A9900BD3DBE /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -35,6 +36,7 @@
 		000BE0F12F225A9900BD3DBE = {
 			isa = PBXGroup;
 			children = (
+				000BE1082F225A9900BD3DBE /* Secrets.xcconfig */,
 				000BE0FC2F225A9900BD3DBE /* Downpour */,
 				000BE0FB2F225A9900BD3DBE /* Products */,
 			);
@@ -130,6 +132,7 @@
 /* Begin XCBuildConfiguration section */
 		000BE1032F225A9A00BD3DBE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000BE1082F225A9900BD3DBE /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -194,6 +197,7 @@
 		};
 		000BE1042F225A9A00BD3DBE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000BE1082F225A9900BD3DBE /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

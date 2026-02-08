@@ -1,6 +1,7 @@
 xcuserdata
 Downpour.app/
 data
+Secrets.xcconfig
 xcshareddata
 .DS_Store
 build
